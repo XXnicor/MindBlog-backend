@@ -1,15 +1,11 @@
-// src/middlewares/authMiddleware.ts
+
 import { Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { AuthRequest } from '../types';
 import { JwtPayload } from '../types';
+import { config } from '../config/env.config';
 
 export class AuthMiddleware {
-  private jwtSecret: string;
-
-  constructor(jwtSecret: string) {
-    this.jwtSecret = jwtSecret;
-  }
 
   public authenticate = (
     req: AuthRequest,
@@ -34,7 +30,7 @@ export class AuthMiddleware {
         message: 'Token vazio',});
         return;
       }
-       const decoded = jwt.verify(token, this.jwtSecret) as JwtPayload;
+       const decoded = jwt.verify(token,config.jwt.secret) as JwtPayload;
         
        req.userId = decoded.userId;
         

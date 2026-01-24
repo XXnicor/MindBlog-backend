@@ -2,11 +2,13 @@
   "name": "blog-backend",
   "version": "1.0.0",
   "description": "Backend para sistema de Blog - MindGroup Technologies",
-  "main": "dist/server.js",
+  "main": "dist/Main.js",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "dev": "ts-node-dev --respawn --transpile-only Main.ts",
     "build": "tsc",
-    "start": "node dist/server.js"
+    "start": "node dist/Main.js",
+    "clean": "rimraf dist",
+    "prepare": "npm run build"
   },
   "keywords": ["blog", "express", "typescript", "mysql"],
   "author": "",
