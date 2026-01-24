@@ -56,3 +56,7 @@ export interface UpdateArticleData {
   conteudo?: string;
   imagem_banner?: string;
 }
+
+export interface JwtPayload {
+  userId: number;
+}
