@@ -157,7 +157,14 @@ export class ArticleController {
         return;
       }
 
-      const updatedArticle = await this.articleService.updateArticle(id, userId, updateData);
+      const updateDataWithImage: UpdateArticleData = {
+        titulo: updateData.titulo,
+        conteudo: updateData.conteudo,
+        imagem_banner:req.file ? req.file.filename : undefined
+      };
+
+
+      const updatedArticle = await this.articleService.updateArticle(id, userId, updateDataWithImage);
 
       res.status(200).json({
         success: true,

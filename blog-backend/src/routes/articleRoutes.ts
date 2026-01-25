@@ -16,7 +16,7 @@ export function createArticleRoutes(
 
     router.post('/articles', authMiddleware.authenticate, upload.single('banner'), articleController.create);
 
-    router.put('/articles/:id', authMiddleware.authenticate, articleController.update);
+    router.put('/articles/:id', authMiddleware.authenticate,upload.single('banner'), articleController.update);
 
     router.delete('/articles/:id', authMiddleware.authenticate, articleController.delete);
     

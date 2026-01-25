@@ -1,6 +1,8 @@
 // src/services/ArticleService.ts
+import { resolve } from 'path';
 import { ArticleRepository } from '../repositories/ArticleRepository';
 import { Article, ArticleWithAuthor, CreateArticleData, UpdateArticleData } from '../types';
+import { deleteFile, resolveUploadPath } from '../utils/fileUtils';
 
 export class ArticleService {
   private articleRepository: ArticleRepository;
@@ -88,7 +90,7 @@ export class ArticleService {
    * @param updateData Dados para atualização
    * @returns Artigo atualizado com dados do autor
    */
-  public async updateArticle(id: number, userId: number, updateData: UpdateArticleData): Promise<ArticleWithAuthor> {
+  public async updateArticle(id: number, userId: number, updateData: UpdateArticleData): Promise<Article> {
     try {
       // Verifica se o artigo existe
       const article = await this.articleRepository.findById(id);
@@ -101,6 +103,14 @@ export class ArticleService {
       if (!isAuthor) {
         throw new Error('Você não tem permissão para editar este artigo');
       }
+      
+      if(updateData.imagem_banner && article.imagem_banner){
+        const oldFilePath= resolveUploadPath(article.imagem_banner);
+        deleteFile(oldFilePath);
+      }
+
+      const finalUpdateData: UpdateArticleData = { ...updateData };
+
 
       // Validações
       if (updateData.titulo && updateData.titulo.trim().length === 0) {
@@ -111,7 +121,7 @@ export class ArticleService {
       }
 
       // Atualiza o artigo
-      const updated = await this.articleRepository.update(id, updateData);
+      const updated = await this.articleRepository.update(id, finalUpdateData);
       if (!updated) {
         throw new Error('Erro ao atualizar artigo');
       }
