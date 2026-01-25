@@ -2,6 +2,7 @@
 import { Router } from 'express';
 import { ArticleController } from '../controllers/ArticleController';
 import { AuthMiddleware } from '../middlewares/authMiddleware';
+import { upload } from '../middlewares/uploadMiddleware';
 
 export function createArticleRoutes(
   articleController: ArticleController,
@@ -13,7 +14,7 @@ export function createArticleRoutes(
 
     router.get('/articles/:id', articleController.getById);
 
-    router.post('/articles', authMiddleware.authenticate, articleController.create);
+    router.post('/articles', authMiddleware.authenticate, upload.single('banner'), articleController.create);
 
     router.put('/articles/:id', authMiddleware.authenticate, articleController.update);
 

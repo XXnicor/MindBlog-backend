@@ -2,6 +2,7 @@
 import { Request, Response } from 'express';
 import { ArticleService } from '../services/ArticleService';
 import { AuthRequest, CreateArticleData, UpdateArticleData } from '../types';
+import multer from 'multer';
 
 export class ArticleController {
   private articleService: ArticleService;
@@ -82,7 +83,13 @@ export class ArticleController {
         return;
       }
 
-      const article = await this.articleService.createArticle(articleData, userId);
+      const articleDataWithImage: CreateArticleData = {
+        titulo: articleData.titulo,
+        conteudo: articleData.conteudo,
+        imagem_banner:req.file ? req.file.filename : undefined
+      };
+
+      const article = await this.articleService.createArticle(articleDataWithImage, userId);
 
       res.status(201).json({
         success: true,
@@ -92,8 +99,16 @@ export class ArticleController {
 
     } catch (error) {
       
+      if (error instanceof multer.MulterError) {
+        if (error.code === 'LIMIT_FILE_SIZE') {
+          res.status(400).json({
+            success: false,
+            message: 'Arquivo muito grande. Tamanho máximo: 5MB'
+          });
+          return;
+        }
+      }
       
-
       if (error instanceof Error) {
 
        const errorMessage = error.message.toLowerCase();

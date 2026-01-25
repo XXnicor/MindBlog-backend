@@ -32,6 +32,7 @@ export interface ArticleWithAuthor extends Article {
 
 export interface AuthRequest extends Request {
   userId?: number;
+  file?: Express.Multer.File;
 }
 
 export interface LoginCredentials {

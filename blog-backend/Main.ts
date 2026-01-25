@@ -12,6 +12,7 @@ import {UserController} from './src/controllers/UserController';
 import {AuthMiddleware} from './src/middlewares/AuthMiddleware';
 import {createAuthRoutes} from './src/routes/authRoutes';
 import {createArticleRoutes} from './src/routes/articleRoutes';
+import path from 'path';
 
 
 const app = express();
@@ -43,6 +44,7 @@ app.get('/', (req, res) => {
 
 app.use('/api', authRoutes);
 app.use('/api', articleRoutes);
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 
 
