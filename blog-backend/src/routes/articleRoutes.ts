@@ -10,15 +10,15 @@ export function createArticleRoutes(
 ): Router {
   const router = Router();
 
-    router.get('/articles', articleController.listAll);
+  router.get('/articles', articleController.listAll);
 
-    router.get('/articles/:id', articleController.getById);
+  router.get('/articles/:id', articleController.getById);
 
-    router.post('/articles', authMiddleware.authenticate, upload.single('banner'), articleController.create);
+  router.post('/articles', authMiddleware.authenticate, upload.single('imagem'), articleController.create);
 
-    router.put('/articles/:id', authMiddleware.authenticate,upload.single('banner'), articleController.update);
+  router.put('/articles/:id', authMiddleware.authenticate, upload.single('imagem'), articleController.update);
 
-    router.delete('/articles/:id', authMiddleware.authenticate, articleController.delete);
+  router.delete('/articles/:id', authMiddleware.authenticate, articleController.delete);
     
   return router;
 }

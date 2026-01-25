@@ -1,13 +1,25 @@
 import { RowDataPacket, ResultSetHeader } from 'mysql2';
 import connection from '../database/database';
-import { Article, ArticleWithAuthor, CreateArticleData, UpdateArticleData } from '../types';
+import { Article, ArticleWithAuthor, CreateArticleData, UpdateArticleData, PaginationParams, PaginationResult } from '../types';
     export class ArticleRepository {
 
       public async create(articleData: CreateArticleData, authorId: number): Promise<number> {
         try {
+          const tagsJson = articleData.tags ? JSON.stringify(articleData.tags) : null;
+          
           const [result] = await connection.query<ResultSetHeader>(
-            'INSERT INTO articles (titulo, conteudo, id_autor, imagem_banner) VALUES (?, ?, ?, ?)',
-            [articleData.titulo, articleData.conteudo, authorId, articleData.imagem_banner || null]
+            `INSERT INTO articles 
+            (titulo, conteudo, resumo, categoria, tags, id_autor, imagem_banner, views, likes) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, 0, 0)`,
+            [
+              articleData.titulo,
+              articleData.conteudo,
+              articleData.resumo || null,
+              articleData.categoria,
+              tagsJson,
+              authorId,
+              articleData.imagem_banner || null
+            ]
           );
 
           return result.insertId;
@@ -39,7 +51,10 @@ import { Article, ArticleWithAuthor, CreateArticleData, UpdateArticleData } from
             `SELECT 
               a.*,
               u.nome as autor_nome,
-              u.email as autor_email
+              u.email as autor_email,
+              u.avatar as autor_avatar,
+              u.bio as autor_bio,
+              (SELECT COUNT(*) FROM comments WHERE id_article = a.id) as commentsCount
             FROM articles a
             INNER JOIN users u ON a.id_autor = u.id
             WHERE a.id = ?`,
@@ -74,7 +89,10 @@ import { Article, ArticleWithAuthor, CreateArticleData, UpdateArticleData } from
             `SELECT 
               a.*,
               u.nome as autor_nome,
-              u.email as autor_email
+              u.email as autor_email,
+              u.avatar as autor_avatar,
+              u.bio as autor_bio,
+              (SELECT COUNT(*) FROM comments WHERE id_article = a.id) as commentsCount
             FROM articles a
             INNER JOIN users u ON a.id_autor = u.id
             ORDER BY a.data_publicacao DESC`
@@ -83,6 +101,68 @@ import { Article, ArticleWithAuthor, CreateArticleData, UpdateArticleData } from
           return rows as ArticleWithAuthor[];
         } catch (error) {
           throw new Error(`Erro ao listar artigos com autores: ${error}`);
+        }
+      }
+
+      public async findWithPagination(params: PaginationParams): Promise<PaginationResult<ArticleWithAuthor>> {
+        try {
+          const { page, limit, categoria, search } = params;
+          const offset = (page - 1) * limit;
+
+          let whereConditions: string[] = [];
+          let queryParams: any[] = [];
+
+          if (categoria) {
+            whereConditions.push('a.categoria = ?');
+            queryParams.push(categoria);
+          }
+
+          if (search) {
+            whereConditions.push('(a.titulo LIKE ? OR a.conteudo LIKE ? OR a.resumo LIKE ?)');
+            const searchPattern = `%${search}%`;
+            queryParams.push(searchPattern, searchPattern, searchPattern);
+          }
+
+          const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
+
+          // Buscar total de itens
+          const [countRows] = await connection.query<RowDataPacket[]>(
+            `SELECT COUNT(*) as total FROM articles a ${whereClause}`,
+            queryParams
+          );
+          const totalItems = countRows[0].total;
+
+          // Buscar artigos com paginação
+          const [rows] = await connection.query<RowDataPacket[]>(
+            `SELECT 
+              a.*,
+              u.nome as autor_nome,
+              u.email as autor_email,
+              u.avatar as autor_avatar,
+              u.bio as autor_bio,
+              (SELECT COUNT(*) FROM comments WHERE id_article = a.id) as commentsCount
+            FROM articles a
+            INNER JOIN users u ON a.id_autor = u.id
+            ${whereClause}
+            ORDER BY a.data_publicacao DESC
+            LIMIT ? OFFSET ?`,
+            [...queryParams, limit, offset]
+          );
+
+          const articles = rows as ArticleWithAuthor[];
+          const totalPages = Math.ceil(totalItems / limit);
+
+          return {
+            articles,
+            pagination: {
+              currentPage: page,
+              totalPages,
+              totalItems,
+              itemsPerPage: limit
+            }
+          };
+        } catch (error) {
+          throw new Error(`Erro ao buscar artigos com paginação: ${error}`);
         }
       }
 
@@ -112,6 +192,19 @@ import { Article, ArticleWithAuthor, CreateArticleData, UpdateArticleData } from
             fields.push('conteudo = ?');
             values.push(articleData.conteudo);
           }
+          if (articleData.resumo !== undefined) {
+            fields.push('resumo = ?');
+            values.push(articleData.resumo);
+          }
+          if (articleData.categoria) {
+            fields.push('categoria = ?');
+            values.push(articleData.categoria);
+          }
+          if (articleData.tags !== undefined) {
+            fields.push('tags = ?');
+            const tagsJson = articleData.tags ? JSON.stringify(articleData.tags) : null;
+            values.push(tagsJson);
+          }
           if (articleData.imagem_banner !== undefined) {
             fields.push('imagem_banner = ?');
             values.push(articleData.imagem_banner);
@@ -132,6 +225,18 @@ import { Article, ArticleWithAuthor, CreateArticleData, UpdateArticleData } from
           return result.affectedRows > 0;
         } catch (error) {
           throw new Error(`Erro ao atualizar artigo: ${error}`);
+        }
+      }
+
+      public async incrementViews(id: number): Promise<boolean> {
+        try {
+          const [result] = await connection.query<ResultSetHeader>(
+            'UPDATE articles SET views = views + 1 WHERE id = ?',
+            [id]
+          );
+          return result.affectedRows > 0;
+        } catch (error) {
+          throw new Error(`Erro ao incrementar views: ${error}`);
         }
       }
 

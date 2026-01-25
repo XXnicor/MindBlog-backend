@@ -13,16 +13,35 @@ export class ArticleController {
 
   public listAll = async (req: Request, res: Response): Promise<void> => {
     try {
+      // Verifica se há parâmetros de paginação
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const categoria = req.query.categoria as string;
+      const search = req.query.search as string;
+
+      // Se houver parâmetros, usa paginação
+      if (req.query.page || req.query.limit || req.query.categoria || req.query.search) {
+        const result = await this.articleService.getArticlesWithPagination({
+          page,
+          limit,
+          categoria,
+          search
+        });
+
+        res.status(200).json({
+          data: result
+        });
+        return;
+      }
+
+      // Caso contrário, retorna todos
       const articles = await this.articleService.getAllArticles();
 
       res.status(200).json({
-        success: true,
-        message: 'Artigos listados com sucesso',
         data: articles
       });
     } catch (error) {
       res.status(500).json({
-        success: false,
         message: 'Erro ao listar artigos'
       });
     }
@@ -34,7 +53,6 @@ export class ArticleController {
 
       if (isNaN(id)) {
         res.status(400).json({
-          success: false,
           message: 'ID inválido'
         });
         return;
@@ -44,19 +62,16 @@ export class ArticleController {
 
       if (!article) {
         res.status(404).json({
-          success: false,
           message: 'Artigo não encontrado'
         });
         return;
       }
 
       res.status(200).json({
-        success: true,
         data: article
       });
     } catch (error) {
       res.status(500).json({
-        success: false,
         message: 'Erro ao buscar artigo'
       });
     }
@@ -64,12 +79,19 @@ export class ArticleController {
 
   public create = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-      const articleData: CreateArticleData = req.body;
-      const userId = req.userId; // Vem do middleware de autenticação
+      let articleData: CreateArticleData = {
+        titulo: req.body.titulo,
+        conteudo: req.body.conteudo,
+        resumo: req.body.resumo,
+        categoria: req.body.categoria || 'Dev',
+        tags: req.body.tags ? JSON.parse(req.body.tags) : undefined,
+        imagem_banner: req.file ? req.file.filename : undefined
+      };
+      
+      const userId = req.userId;
 
       if (!userId) {
         res.status(401).json({
-          success: false,
           message: 'Usuário não autenticado'
         });
         return;
@@ -77,23 +99,14 @@ export class ArticleController {
 
       if (!articleData.titulo || !articleData.conteudo) {
         res.status(400).json({
-          success: false,
           message: 'Título e conteúdo são obrigatórios'
         });
         return;
       }
 
-      const articleDataWithImage: CreateArticleData = {
-        titulo: articleData.titulo,
-        conteudo: articleData.conteudo,
-        imagem_banner:req.file ? req.file.filename : undefined
-      };
-
-      const article = await this.articleService.createArticle(articleDataWithImage, userId);
+      const article = await this.articleService.createArticle(articleData, userId);
 
       res.status(201).json({
-        success: true,
-        message: 'Artigo criado com sucesso',
         data: article
       });
 
@@ -102,7 +115,6 @@ export class ArticleController {
       if (error instanceof multer.MulterError) {
         if (error.code === 'LIMIT_FILE_SIZE') {
           res.status(400).json({
-            success: false,
             message: 'Arquivo muito grande. Tamanho máximo: 5MB'
           });
           return;
@@ -113,10 +125,9 @@ export class ArticleController {
 
        const errorMessage = error.message.toLowerCase();
        
-        if (errorMessage.includes ('obrigatório') || errorMessage.includes ('vazio')) {
+        if (errorMessage.includes ('obrigatório') || errorMessage.includes ('vazio') || errorMessage.includes ('caracteres')) {
 
           res.status(400).json({
-            success: false,
             message: error.message
           });
           return;
@@ -124,7 +135,6 @@ export class ArticleController {
       }
 
         res.status(500).json({
-        success: false,
         message: 'Erro ao criar artigo'
 
       });
@@ -139,11 +149,18 @@ export class ArticleController {
     try {
       const id = parseInt(req.params.id);
       const userId = req.userId;
-      const updateData: UpdateArticleData = req.body;
+      
+      let updateData: UpdateArticleData = {
+        titulo: req.body.titulo,
+        conteudo: req.body.conteudo,
+        resumo: req.body.resumo,
+        categoria: req.body.categoria,
+        tags: req.body.tags ? JSON.parse(req.body.tags) : undefined,
+        imagem_banner: req.file ? req.file.filename : undefined
+      };
 
       if (isNaN(id)) {
         res.status(400).json({
-          success: false,
           message: 'ID inválido'
         });
         return;
@@ -151,24 +168,14 @@ export class ArticleController {
 
         if (!userId) {
         res.status(401).json({
-          success: false,
           message: 'Usuário não autenticado'
         });
         return;
       }
 
-      const updateDataWithImage: UpdateArticleData = {
-        titulo: updateData.titulo,
-        conteudo: updateData.conteudo,
-        imagem_banner:req.file ? req.file.filename : undefined
-      };
-
-
-      const updatedArticle = await this.articleService.updateArticle(id, userId, updateDataWithImage);
+      const updatedArticle = await this.articleService.updateArticle(id, userId, updateData);
 
       res.status(200).json({
-        success: true,
-        message: 'Artigo atualizado com sucesso',
         data: updatedArticle
       });
       
@@ -177,23 +184,20 @@ export class ArticleController {
 
        const errorMessage = error.message.toLowerCase();
        
-        if (errorMessage.includes ('obrigatório') || errorMessage.includes ('vazio')) {
+        if (errorMessage.includes ('obrigatório') || errorMessage.includes ('vazio') || errorMessage.includes ('caracteres')) {
           res.status(400).json({
-            success: false,
             message: error.message
           });
           return;
         }
         if (errorMessage.includes('não encontrado')) {
           res.status(404).json({
-            success: false,
             message: error.message
           });
           return;
         }
         if (errorMessage.includes('permissão')) {
           res.status(403).json({
-            success: false,
             message: error.message
           });
           return;
@@ -201,7 +205,6 @@ export class ArticleController {
       }
 
         res.status(500).json({
-        success: false,
         message: 'Erro ao atualizar artigo'
       });
     }
@@ -214,7 +217,6 @@ export class ArticleController {
 
       if (isNaN(id)) {  
         res.status(400).json({
-          success: false,
           message: 'ID inválido'
         });
         return;
@@ -222,15 +224,18 @@ export class ArticleController {
 
       if (!userId) {
         res.status(401).json({
-          success: false,
           message: 'Usuário não autenticado'
         });
         return;
         }   
 
-       const deleted = await this.articleService.deleteArticle(id, userId); 
+       await this.articleService.deleteArticle(id, userId); 
 
-      res.status(204).send();
+      res.status(200).json({
+        data: {
+          message: 'Artigo deletado com sucesso'
+        }
+      });
 
     } catch (error) {
       if (error instanceof Error) {
@@ -239,7 +244,6 @@ export class ArticleController {
        
         if (errorMessage.includes ('permissão')) {
           res.status(403).json({
-            success: false,
             message: error.message
           });
           return;
@@ -247,14 +251,12 @@ export class ArticleController {
         
         if (errorMessage.includes('não encontrado')) {
           res.status(404).json({
-            success: false,
             message: error.message
           });
           return;
         }
       }
         res.status(500).json({      
-        success: false,
         message: 'Erro ao deletar artigo'
       });
     }

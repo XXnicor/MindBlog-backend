@@ -1,7 +1,7 @@
 // src/services/ArticleService.ts
 import { resolve } from 'path';
 import { ArticleRepository } from '../repositories/ArticleRepository';
-import { Article, ArticleWithAuthor, CreateArticleData, UpdateArticleData } from '../types';
+import { Article, ArticleWithAuthor, CreateArticleData, UpdateArticleData, PaginationParams, PaginationResult } from '../types';
 import { deleteFile, resolveUploadPath } from '../utils/fileUtils';
 
 export class ArticleService {
@@ -23,8 +23,20 @@ export class ArticleService {
       if (!articleData.titulo || articleData.titulo.trim().length === 0) {
         throw new Error('Título é obrigatório');
       }
+      if (articleData.titulo.length < 5 || articleData.titulo.length > 200) {
+        throw new Error('Título deve ter entre 5 e 200 caracteres');
+      }
       if (!articleData.conteudo || articleData.conteudo.trim().length === 0) {
         throw new Error('Conteúdo é obrigatório');
+      }
+      if (articleData.conteudo.length < 100) {
+        throw new Error('Conteúdo deve ter no mínimo 100 caracteres');
+      }
+      if (!articleData.categoria) {
+        articleData.categoria = 'Dev';
+      }
+      if (articleData.resumo && articleData.resumo.length > 200) {
+        throw new Error('Resumo deve ter no máximo 200 caracteres');
       }
 
       // Cria o artigo
@@ -46,13 +58,21 @@ export class ArticleService {
   }
 
   /**
-   * Busca um artigo pelo ID com dados do autor
+   * Busca um artigo pelo ID com dados do autor e incrementa views
    * @param id ID do artigo
    * @returns Artigo com dados do autor ou null
    */
   public async getArticleById(id: number): Promise<ArticleWithAuthor | null> {
     try {
-      return await this.articleRepository.findByIdWithAuthor(id);
+      const article = await this.articleRepository.findByIdWithAuthor(id);
+      
+      // Incrementa visualizações
+      if (article) {
+        await this.articleRepository.incrementViews(id);
+        article.views += 1; // Atualiza o objeto retornado
+      }
+      
+      return article;
     } catch (error) {
       throw new Error('Erro ao buscar artigo');
     }
@@ -67,6 +87,19 @@ export class ArticleService {
       return await this.articleRepository.findAllWithAuthors();
     } catch (error) {
       throw new Error('Erro ao listar artigos');
+    }
+  }
+
+  /**
+   * Lista artigos com paginação e filtros
+   * @param params Parâmetros de paginação
+   * @returns Artigos paginados
+   */
+  public async getArticlesWithPagination(params: PaginationParams): Promise<PaginationResult<ArticleWithAuthor>> {
+    try {
+      return await this.articleRepository.findWithPagination(params);
+    } catch (error) {
+      throw new Error('Erro ao listar artigos com paginação');
     }
   }
 
@@ -116,8 +149,17 @@ export class ArticleService {
       if (updateData.titulo && updateData.titulo.trim().length === 0) {
         throw new Error('Título não pode ser vazio');
       }
+      if (updateData.titulo && (updateData.titulo.length < 5 || updateData.titulo.length > 200)) {
+        throw new Error('Título deve ter entre 5 e 200 caracteres');
+      }
       if (updateData.conteudo && updateData.conteudo.trim().length === 0) {
         throw new Error('Conteúdo não pode ser vazio');
+      }
+      if (updateData.conteudo && updateData.conteudo.length < 100) {
+        throw new Error('Conteúdo deve ter no mínimo 100 caracteres');
+      }
+      if (updateData.resumo && updateData.resumo.length > 200) {
+        throw new Error('Resumo deve ter no máximo 200 caracteres');
       }
 
       // Atualiza o artigo

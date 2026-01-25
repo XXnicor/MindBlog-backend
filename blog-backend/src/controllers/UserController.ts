@@ -1,7 +1,7 @@
 // src/controllers/UserController.ts
 import { Request, Response } from 'express';
 import { UserService } from '../services/UserService';
-import { RegisterData, LoginCredentials, AuthRequest } from '../types';
+import { RegisterData, LoginCredentials, AuthRequest, UpdateProfileData } from '../types';
 
 export class UserController {
   private userService: UserService;
@@ -12,7 +12,7 @@ export class UserController {
 
   /**
    * Registra um novo usuário
-   * POST /users/register
+   * POST /auth/register
    */
   public register = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -21,7 +21,6 @@ export class UserController {
       // Validações básicas
       if (!registerData.nome || !registerData.email || !registerData.senha) {
         res.status(400).json({
-          success: false,
           message: 'Nome, email e senha são obrigatórios'
         });
         return;
@@ -31,7 +30,6 @@ export class UserController {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(registerData.email)) {
         res.status(400).json({
-          success: false,
           message: 'Email inválido'
         });
         return;
@@ -40,24 +38,25 @@ export class UserController {
       // Validação de senha
       if (registerData.senha.length < 6) {
         res.status(400).json({
-          success: false,
           message: 'Senha deve ter no mínimo 6 caracteres'
         });
         return;
       }
 
-      const user = await this.userService.register(registerData);
+      const authResponse = await this.userService.register(registerData);
 
       res.status(201).json({
-        success: true,
-        message: 'Usuário registrado com sucesso',
-        data: user
+        data: {
+          id: authResponse.user.id,
+          nome: authResponse.user.nome,
+          email: authResponse.user.email,
+          token: authResponse.token
+        }
       });
     } catch (error) {
       if (error instanceof Error) {
         if (error.message === 'Email já cadastrado') {
           res.status(409).json({
-            success: false,
             message: error.message
           });
           return;
@@ -65,7 +64,6 @@ export class UserController {
       }
 
       res.status(500).json({
-        success: false,
         message: 'Erro ao registrar usuário'
       });
     }
@@ -73,7 +71,7 @@ export class UserController {
 
   /**
    * Autentica um usuário
-   * POST /users/login
+   * POST /auth/login
    */
   public login = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -82,7 +80,6 @@ export class UserController {
       // Validações básicas
       if (!credentials.email || !credentials.senha) {
         res.status(400).json({
-          success: false,
           message: 'Email e senha são obrigatórios'
         });
         return;
@@ -91,16 +88,121 @@ export class UserController {
       const authResponse = await this.userService.login(credentials);
 
       res.status(200).json({
-        success: true,
-        message: 'Login realizado com sucesso',
-        data: authResponse
+        data: {
+          id: authResponse.user.id,
+          nome: authResponse.user.nome,
+          email: authResponse.user.email,
+          avatar: authResponse.user.avatar,
+          token: authResponse.token
+        }
       });
       
     } catch (error) {
       if (error instanceof Error) {
         if (error.message === 'Credenciais inválidas') {
           res.status(401).json({
-            success: false,
+            message: 'Email ou senha incorretos'
+          });
+          return;
+        }
+      }
+
+      res.status(500).json({
+        message: 'Erro ao fazer login'
+      });
+    }
+  };
+
+  /**
+   * Obtém dados do usuário autenticado
+   * GET /auth/me
+   */
+  public me = async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+      const userId = req.userId;
+
+      if (!userId) {
+        res.status(401).json({
+          message: 'Usuário não autenticado'
+        });
+        return;
+      }
+
+      const user = await this.userService.getUserById(userId);
+
+      if (!user) {
+        res.status(404).json({
+          message: 'Usuário não encontrado'
+        });
+        return;
+      }
+
+      res.status(200).json({
+        data: user
+      });
+    } catch (error) {
+      res.status(500).json({
+        message: 'Erro ao buscar dados do usuário'
+      });
+    }
+  };
+
+  /**
+   * Atualiza perfil do usuário
+   * PUT /users/profile
+   */
+  public updateProfile = async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+      const userId = req.userId;
+
+      if (!userId) {
+        res.status(401).json({
+          message: 'Usuário não autenticado'
+        });
+        return;
+      }
+
+      const profileData: UpdateProfileData = {
+        nome: req.body.nome,
+        email: req.body.email,
+        bio: req.body.bio,
+        avatar: req.file ? req.file.filename : undefined,
+        senha_atual: req.body.senha_atual,
+        senha_nova: req.body.senha_nova
+      };
+
+      const updatedUser = await this.userService.updateProfile(userId, profileData);
+
+      res.status(200).json({
+        data: updatedUser
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        const errorMessage = error.message.toLowerCase();
+        
+        if (errorMessage.includes('senha atual') || errorMessage.includes('obrigatória')) {
+          res.status(400).json({
+            message: error.message
+          });
+          return;
+        }
+
+        if (errorMessage.includes('incorreta')) {
+          res.status(401).json({
+            message: error.message
+          });
+          return;
+        }
+
+        if (errorMessage.includes('email já está em uso')) {
+          res.status(409).json({
+            message: error.message
+          });
+          return;
+        }
+
+        if (errorMessage.includes('não encontrado')) {
+          res.status(404).json({
             message: error.message
           });
           return;
@@ -108,8 +210,34 @@ export class UserController {
       }
 
       res.status(500).json({
-        success: false,
-        message: 'Erro ao fazer login'
+        message: 'Erro ao atualizar perfil'
+      });
+    }
+  };
+
+  /**
+   * Obtém estatísticas do usuário
+   * GET /users/stats
+   */
+  public getStats = async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+      const userId = req.userId;
+
+      if (!userId) {
+        res.status(401).json({
+          message: 'Usuário não autenticado'
+        });
+        return;
+      }
+
+      const stats = await this.userService.getUserStats(userId);
+
+      res.status(200).json({
+        data: stats
+      });
+    } catch (error) {
+      res.status(500).json({
+        message: 'Erro ao buscar estatísticas'
       });
     }
   };
@@ -124,7 +252,6 @@ export class UserController {
 
       if (isNaN(id)) {
         res.status(400).json({
-          success: false,
           message: 'ID inválido'
         });
         return;
@@ -134,19 +261,16 @@ export class UserController {
 
       if (!user) {
         res.status(404).json({
-          success: false,
           message: 'Usuário não encontrado'
         });
         return;
       }
 
       res.status(200).json({
-        success: true,
         data: user
       });
     } catch (error) {
       res.status(500).json({
-        success: false,
         message: 'Erro ao buscar usuário'
       });
     }
@@ -161,12 +285,10 @@ export class UserController {
       const users = await this.userService.getAllUsers();
 
       res.status(200).json({
-        success: true,
         data: users
       });
     } catch (error) {
       res.status(500).json({
-        success: false,
         message: 'Erro ao listar usuários'
       });
     }
@@ -183,7 +305,6 @@ export class UserController {
 
       if (isNaN(id)) {
         res.status(400).json({
-          success: false,
           message: 'ID inválido'
         });
         return;
@@ -194,7 +315,6 @@ export class UserController {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(updateData.email)) {
           res.status(400).json({
-            success: false,
             message: 'Email inválido'
           });
           return;
@@ -204,7 +324,6 @@ export class UserController {
       // Validação de senha se fornecida
       if (updateData.senha && updateData.senha.length < 6) {
         res.status(400).json({
-          success: false,
           message: 'Senha deve ter no mínimo 6 caracteres'
         });
         return;
@@ -213,22 +332,18 @@ export class UserController {
       const user = await this.userService.updateUser(id, updateData);
 
       res.status(200).json({
-        success: true,
-        message: 'Usuário atualizado com sucesso',
         data: user
       });
     } catch (error) {
       if (error instanceof Error) {
         if (error.message === 'Usuário não encontrado') {
           res.status(404).json({
-            success: false,
             message: error.message
           });
           return;
         }
         if (error.message === 'Email já está em uso') {
           res.status(409).json({
-            success: false,
             message: error.message
           });
           return;
@@ -236,7 +351,6 @@ export class UserController {
       }
 
       res.status(500).json({
-        success: false,
         message: 'Erro ao atualizar usuário'
       });
     }
@@ -252,7 +366,6 @@ export class UserController {
 
       if (isNaN(id)) {
         res.status(400).json({
-          success: false,
           message: 'ID inválido'
         });
         return;
@@ -261,15 +374,15 @@ export class UserController {
       await this.userService.deleteUser(id);
 
       res.status(200).json({
-        success: true,
-        message: 'Usuário deletado com sucesso'
+        data: {
+          message: 'Usuário deletado com sucesso'
+        }
       });
       
     } catch (error) {
       if (error instanceof Error) {
         if (error.message === 'Usuário não encontrado') {
           res.status(404).json({
-            success: false,
             message: error.message
           });
           return;
@@ -277,7 +390,6 @@ export class UserController {
       }
 
       res.status(500).json({
-        success: false,
         message: 'Erro ao deletar usuário'
       });
     }

@@ -1,7 +1,7 @@
 
 import bcrypt from 'bcrypt';
 import { UserRepository } from '../repositories/UserRepository';
-import { User, UserDTO, RegisterData, LoginCredentials, AuthResponse} from '../types';
+import { User, UserDTO, RegisterData, LoginCredentials, AuthResponse, UpdateProfileData, UserStats} from '../types';
 import { sign} from 'jsonwebtoken';
 import { config } from '../config/env.config';
 
@@ -13,7 +13,7 @@ export class UserService {
     this.userRepository = userRepository;
   }
 
-  public async register(registerData: RegisterData): Promise<UserDTO> {
+  public async register(registerData: RegisterData): Promise<AuthResponse> {
     try {
       // Verifica se o email já está em uso
       const existingUser = await this.userRepository.findByEmail(registerData.email);
@@ -28,7 +28,9 @@ export class UserService {
       const userId = await this.userRepository.create({
         nome: registerData.nome,
         email: registerData.email,
-        senha: hashedPassword
+        senha: hashedPassword,
+        avatar: registerData.avatar,
+        bio: registerData.bio
       });
 
       // Busca o usuário criado para retornar o DTO
@@ -37,7 +39,16 @@ export class UserService {
         throw new Error('Erro ao recuperar usuário criado');
       }
 
-      return this.toDTO(createdUser);
+      if (createdUser.id === null) {
+        throw new Error('Usuário inválido');
+      }
+
+      const token = this.generateToken(createdUser.id);
+
+      return {
+        user: this.toDTO(createdUser),
+        token
+      };
     } catch (error) {
       if (error instanceof Error) {
         throw error;
@@ -164,6 +175,68 @@ export class UserService {
     }
   }
 
+  public async updateProfile(id: number, profileData: UpdateProfileData): Promise<UserDTO> {
+    try {
+      // Verifica se o usuário existe
+      const user = await this.userRepository.findById(id);
+      if (!user) {
+        throw new Error('Usuário não encontrado');
+      }
+
+      // Se está mudando a senha, verifica a senha atual
+      if (profileData.senha_nova) {
+        if (!profileData.senha_atual) {
+          throw new Error('Senha atual é obrigatória para alterar a senha');
+        }
+
+        const senhaHash = user.getSenhaHash();
+        const isPasswordValid = await bcrypt.compare(profileData.senha_atual, senhaHash);
+        
+        if (!isPasswordValid) {
+          throw new Error('Senha atual incorreta');
+        }
+
+        // Hash da nova senha
+        profileData.senha_nova = await bcrypt.hash(profileData.senha_nova, this.SALT_ROUNDS);
+      }
+
+      // Se está atualizando o email, verifica se já não existe
+      if (profileData.email && profileData.email !== user.email) {
+        const existingUser = await this.userRepository.findByEmail(profileData.email);
+        if (existingUser) {
+          throw new Error('Email já está em uso');
+        }
+      }
+
+      // Atualiza o perfil
+      const updated = await this.userRepository.updateProfile(id, profileData);
+      if (!updated) {
+        throw new Error('Erro ao atualizar perfil');
+      }
+
+      // Retorna o usuário atualizado
+      const updatedUser = await this.userRepository.findById(id);
+      if (!updatedUser) {
+        throw new Error('Erro ao recuperar usuário atualizado');
+      }
+
+      return this.toDTO(updatedUser);
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('Erro ao atualizar perfil');
+    }
+  }
+
+  public async getUserStats(userId: number): Promise<UserStats> {
+    try {
+      return await this.userRepository.getUserStats(userId);
+    } catch (error) {
+      throw new Error('Erro ao buscar estatísticas do usuário');
+    }
+  }
+
   /**
    * Deleta um usuário
    * @param id ID do usuário
@@ -188,7 +261,9 @@ export class UserService {
     return {
       id: user.id,
       nome: user.nome,
-      email: user.email
+      email: user.email,
+      avatar: user.avatar,
+      bio: user.bio
     };
   }
 
