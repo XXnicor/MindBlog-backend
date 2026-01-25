@@ -1,10 +1,11 @@
 // src/routes/articleRoutes.ts
-import { Router, RequestHandler } from 'express';
+import { Router } from 'express';
 import { ArticleController } from '../controllers/ArticleController';
+import { AuthMiddleware } from '../middlewares/authMiddleware';
 
 export function createArticleRoutes(
   articleController: ArticleController,
-  authMiddleware: RequestHandler // TODO: Trocar por tipo real do middleware depois
+  authMiddleware: AuthMiddleware
 ): Router {
   const router = Router();
 
@@ -12,11 +13,11 @@ export function createArticleRoutes(
 
     router.get('/articles/:id', articleController.getById);
 
-    router.post('/articles', authMiddleware, articleController.create);
+    router.post('/articles', authMiddleware.authenticate, articleController.create);
 
-    router.put('/articles/:id', authMiddleware, articleController.update);
+    router.put('/articles/:id', authMiddleware.authenticate, articleController.update);
 
-    router.delete('/articles/:id', authMiddleware, articleController.delete);
-
+    router.delete('/articles/:id', authMiddleware.authenticate, articleController.delete);
+    
   return router;
 }

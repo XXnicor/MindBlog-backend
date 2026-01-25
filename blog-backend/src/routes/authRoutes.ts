@@ -1,8 +1,10 @@
-// src/routes/authRoutes.ts
+
 import { Router } from 'express';
 import { UserController } from '../controllers/UserController';
 
-export function createAuthRoutes(userController: UserController): Router {
+export function createAuthRoutes(userController: UserController,
+   
+  ): Router {
 
   const router = Router();
 
