@@ -41,15 +41,18 @@ export class AuthMiddleware {
         res.status(401).json({
         success: false,
         message: 'Token inválido',});
+        return;
       }
       if (error instanceof jwt.TokenExpiredError) {
         res.status(401).json({
         success: false,
         message: 'Token expirado',});
+        return;
         }
        res.status(500).json({
         success: false,
         message: 'Erro ao verificar token',});
+        return;
     }
   };
 }

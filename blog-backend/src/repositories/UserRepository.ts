@@ -1,9 +1,32 @@
 // src/repositories/UserRepository.ts
 import { RowDataPacket, ResultSetHeader } from 'mysql2';
 import connection from '../database/database';
-import { User, RegisterData } from '../types';
+import { RegisterData, UserRow } from '../types';
+import { User } from '../models/User';
 
 export class UserRepository {
+
+  private toDomain(row: UserRow): User {
+    const user = User.fromDatabase(row);
+    return user;
+  }
+ 
+  private toPersistence(user: User): Partial<UserRow> {
+
+    const out: Partial<UserRow> = {};
+
+    if (user.id !== null) {
+      out.id = user.id;
+    }
+    out.nome = user.nome;
+    out.email = user.email;
+    out.senha = user.getSenhaHash();
+    if (user.created_at) out.created_at = user.created_at;
+    if (user.updated_at) out.updated_at = user.updated_at;
+
+    return out;
+  }
+
 
   public async findByEmail(email: string): Promise<User | null> {
     try {
@@ -16,7 +39,7 @@ export class UserRepository {
         return null;
       }
 
-      return rows[0] as User;
+      return this.toDomain(rows[0] as UserRow);
     } catch (error) {
       throw new Error(`Erro ao buscar usuário por email: ${error}`);
     }
@@ -33,7 +56,7 @@ export class UserRepository {
         return null;
       }
 
-      return rows[0] as User;
+      return this.toDomain(rows[0] as UserRow);
     } catch (error) {
       throw new Error(`Erro ao buscar usuário por ID: ${error}`);
     }

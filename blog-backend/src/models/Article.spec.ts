@@ -9,11 +9,11 @@ describe('Article Model', () => {
       1
     );
 
-    expect(article.title).toBe('Meu Primeiro Artigo');
-    expect(article.content).toBe('Este é o conteúdo do artigo com mais de 10 caracteres.');
-    expect(article.authorId).toBe(1);
+    expect(article.titulo).toBe('Meu Primeiro Artigo');
+    expect(article.conteudo).toBe('Este é o conteúdo do artigo com mais de 10 caracteres.');
+    expect(article.id_autor).toBe(1);
     expect(article.id).toBeNull(); // novo artigo
-    expect(article.bannerPath).toBeNull();
+    expect(article.imagem_banner).toBeNull();
   });
 
   it('deve criar artigo com banner', () => {
@@ -24,7 +24,7 @@ describe('Article Model', () => {
       '/uploads/banner.jpg'
     );
 
-    expect(article.bannerPath).toBe('/uploads/banner.jpg');
+    expect(article.imagem_banner).toBe('/uploads/banner.jpg');
   });
 
   it('deve lançar erro para título vazio', () => {
@@ -42,44 +42,44 @@ describe('Article Model', () => {
   it('deve lançar erro para authorId inválido', () => {
     expect(() => {
       Article.create('Título', 'Conteúdo válido aqui.', 0);
-    }).toThrow('authorId inválido');
+    }).toThrow('id_autor inválido');
   });
 
   it('deve reconstruir artigo do banco', () => {
     const article = Article.fromDatabase({
       id: 1,
-      title: 'Artigo do Banco',
-      content: 'Conteúdo recuperado do banco de dados.',
-      banner_path: '/uploads/banner.jpg',
-      author_id: 5,
-      created_at: new Date('2025-01-01'),
-      updated_at: new Date('2025-01-10')
+      titulo: 'Artigo do Banco',
+      conteudo: 'Conteúdo recuperado do banco de dados.',
+      imagem_banner: '/uploads/banner.jpg',
+      id_autor: 5,
+      data_publicacao: new Date('2025-01-01'),
+      data_alteracao: new Date('2025-01-10')
     });
 
     expect(article.id).toBe(1);
-    expect(article.title).toBe('Artigo do Banco');
-    expect(article.authorId).toBe(5);
-    expect(article.bannerPath).toBe('/uploads/banner.jpg');
-    expect(article.createdAt).toEqual(new Date('2025-01-01'));
+    expect(article.titulo).toBe('Artigo do Banco');
+    expect(article.id_autor).toBe(5);
+    expect(article.imagem_banner).toBe('/uploads/banner.jpg');
+    expect(article.data_publicacao).toEqual(new Date('2025-01-01'));
   });
 
   it('toDTO deve expor todos os campos públicos', () => {
     const article = Article.fromDatabase({
       id: 1,
-      title: 'Teste',
-      content: 'Conteúdo teste aqui.',
-      banner_path: null,
-      author_id: 1,
-      created_at: new Date('2025-01-01')
+      titulo: 'Teste',
+      conteudo: 'Conteúdo teste aqui.',
+      imagem_banner: null,
+      id_autor: 1,
+      data_publicacao: new Date('2025-01-01')
     });
 
     const dto = article.toDTO();
-    
+
     expect(dto.id).toBe(1);
-    expect(dto.title).toBe('Teste');
-    expect(dto.content).toBe('Conteúdo teste aqui.');
-    expect(dto.bannerPath).toBeNull();
-    expect(dto.authorId).toBe(1);
-    expect(dto.createdAt).toEqual(new Date('2025-01-01'));
+    expect(dto.titulo).toBe('Teste');
+    expect(dto.conteudo).toBe('Conteúdo teste aqui.');
+    expect(dto.imagem_banner).toBeNull();
+    expect(dto.id_autor).toBe(1);
+    expect(dto.data_publicacao).toEqual(new Date('2025-01-01'));
   });
 });

@@ -2,41 +2,40 @@
 export class Article {
   private constructor(
     public readonly id: number | null,
-    public readonly title: string,
-    public readonly content: string,
-    public readonly bannerPath: string | null,
-    public readonly authorId: number,
-    public readonly createdAt?: Date,
-    public readonly updatedAt?: Date
+    public readonly titulo: string,
+    public readonly conteudo: string,
+    public readonly imagem_banner: string | null,
+    public readonly id_autor: number,
+    public readonly data_publicacao?: Date,
+    public readonly data_alteracao?: Date
   ) {}
 
   /**
    * Factory method para criar novo artigo (antes de persistir)
    */
   static create(
-    title: string,
-    content: string,
-    authorId: number,
-    bannerPath: string | null = null
+    titulo: string,
+    conteudo: string,
+    id_autor: number,
+    imagem_banner: string | null = null
   ): Article {
-    
-    if (!title || title.trim().length === 0) {
+    if (!titulo || titulo.trim().length === 0) {
       throw new Error('Título não pode ser vazio');
     }
 
-    if (!content || content.trim().length < 10) {
-        throw new Error('Conteúdo deve ter no mínimo 10 caracteres');
+    if (!conteudo || conteudo.trim().length < 10) {
+      throw new Error('Conteúdo deve ter no mínimo 10 caracteres');
     }
 
-    if (!bannerPath) {
-      bannerPath = null;
+    if (!imagem_banner) {
+      imagem_banner = null;
     }
 
-    if (authorId <= 0) {
-      throw new Error('authorId inválido');
+    if (id_autor <= 0) {
+      throw new Error('id_autor inválido');
     }
 
-    return new Article(null, title, content, bannerPath, authorId);
+    return new Article(null, titulo, conteudo, imagem_banner, id_autor);
   }
 
   /**
@@ -44,47 +43,44 @@ export class Article {
    */
   static fromDatabase(data: {
     id: number;
-    title: string;
-    content: string;
-    banner_path: string | null;
-    author_id: number;
-    created_at?: Date;
-    updated_at?: Date;
+    titulo: string;
+    conteudo: string;
+    imagem_banner: string | null;
+    id_autor: number;
+    data_publicacao?: Date;
+    data_alteracao?: Date;
   }): Article {
-
     return new Article(
       data.id,
-      data.title,
-      data.content,
-      data.banner_path,
-      data.author_id,
-      data.created_at,
-      data.updated_at
+      data.titulo,
+      data.conteudo,
+      data.imagem_banner,
+      data.id_autor,
+      data.data_publicacao,
+      data.data_alteracao
     );
   }
 
   /**
    * Converte para DTO (dados públicos)
    */
-  toDTO(): { 
+  toDTO(): {
     id: number | null;
-    title: string; 
-    content: string; 
-    bannerPath: string | null;
-    authorId: number;
-    createdAt?: Date;
-    updatedAt?: Date;
-  } 
-  
-  {
+    titulo: string;
+    conteudo: string;
+    imagem_banner: string | null;
+    id_autor: number;
+    data_publicacao?: Date;
+    data_alteracao?: Date;
+  } {
     return {
       id: this.id,
-      title: this.title,
-      content: this.content,
-      bannerPath: this.bannerPath,
-      authorId: this.authorId,
-      createdAt: this.createdAt,
-      updatedAt: this.updatedAt
+      titulo: this.titulo,
+      conteudo: this.conteudo,
+      imagem_banner: this.imagem_banner,
+      id_autor: this.id_autor,
+      data_publicacao: this.data_publicacao,
+      data_alteracao: this.data_alteracao
     };
   }
 }

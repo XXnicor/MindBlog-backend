@@ -1,6 +1,6 @@
 import { Request } from 'express';
 
-export interface User {
+export interface UserRow {
   id: number;
   nome: string;
   email: string;
@@ -10,9 +10,19 @@ export interface User {
 }
 
 export interface UserDTO {
-  id: number;
+  id: number | null;
   nome: string;
   email: string;
+}
+
+export interface User {
+  id: number | null;
+  nome: string;
+  email: string;
+  senha?: string;
+  created_at?: Date;
+  updated_at?: Date;
+  getSenhaHash?: () => string;
 }
 
 export interface Article {
@@ -21,7 +31,7 @@ export interface Article {
   conteudo: string;
   id_autor: number;
   data_publicacao: Date;
-  data_alteracao: Date;
+  data_alteracao?: Date;
   imagem_banner: string | null;
 }
 

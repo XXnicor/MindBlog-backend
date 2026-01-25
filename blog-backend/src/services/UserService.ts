@@ -69,10 +69,15 @@ export class UserService {
       }
 
       // Verifica a senha
-      const isPasswordValid = await bcrypt.compare(credentials.senha, user.senha);
+      const senhaHash = user.getSenhaHash();
+      const isPasswordValid = await bcrypt.compare(credentials.senha, senhaHash);
       
       if (!isPasswordValid) {
         throw new Error('Credenciais inválidas');
+      }
+
+      if (user.id === null) {
+        throw new Error('Usuário inválido');
       }
 
       const token = this.generateToken(user.id);
