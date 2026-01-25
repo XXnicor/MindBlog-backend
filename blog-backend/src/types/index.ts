@@ -60,3 +60,8 @@ export interface UpdateArticleData {
 export interface JwtPayload {
   userId: number;
 }
+
+export interface AuthResponse {
+  user: UserDTO;
+  token: string;
+}

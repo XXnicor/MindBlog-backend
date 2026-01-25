@@ -1,7 +1,9 @@
-// src/services/UserService.ts
+
 import bcrypt from 'bcrypt';
 import { UserRepository } from '../repositories/UserRepository';
-import { User, UserDTO, RegisterData, LoginCredentials } from '../types';
+import { User, UserDTO, RegisterData, LoginCredentials, AuthResponse} from '../types';
+import { sign} from 'jsonwebtoken';
+import { config } from '../config/env.config';
 
 export class UserService {
   private readonly SALT_ROUNDS = 10;
@@ -11,11 +13,6 @@ export class UserService {
     this.userRepository = userRepository;
   }
 
-  /**
-   * Registra um novo usuário
-   * @param registerData Dados de cadastro (nome, email, senha)
-   * @returns DTO do usuário criado (sem senha)
-   */
   public async register(registerData: RegisterData): Promise<UserDTO> {
     try {
       // Verifica se o email já está em uso
@@ -48,27 +45,43 @@ export class UserService {
       throw new Error('Erro ao registrar usuário');
     }
   }
+  private generateToken(userId: number): string {
 
-  /**
-   * Autentica um usuário
-   * @param credentials Email e senha
-   * @returns DTO do usuário autenticado
-   */
-  public async login(credentials: LoginCredentials): Promise<UserDTO> {
+    const payload = { userId };
+
+
+    const token = sign(
+      payload,
+      config.jwt.secret,
+      { expiresIn: config.jwt.expiresIn as number } 
+    );
+
+    return token;
+  }
+
+  public async login(credentials: LoginCredentials): Promise<AuthResponse> {
     try {
       // Busca o usuário pelo email
       const user = await this.userRepository.findByEmail(credentials.email);
+      
       if (!user) {
         throw new Error('Credenciais inválidas');
       }
 
       // Verifica a senha
       const isPasswordValid = await bcrypt.compare(credentials.senha, user.senha);
+      
       if (!isPasswordValid) {
         throw new Error('Credenciais inválidas');
       }
 
-      return this.toDTO(user);
+      const token = this.generateToken(user.id);
+
+      return {
+        user:this.toDTO(user),
+        token: token
+      };
+
     } catch (error) {
       if (error instanceof Error) {
         throw error;
@@ -77,18 +90,15 @@ export class UserService {
     }
   }
 
-  /**
-   * Busca um usuário pelo ID
-   * @param id ID do usuário
-   * @returns DTO do usuário ou null
-   */
   public async getUserById(id: number): Promise<UserDTO | null> {
+
     try {
       const user = await this.userRepository.findById(id);
       if (!user) {
         return null;
       }
       return this.toDTO(user);
+
     } catch (error) {
       throw new Error('Erro ao buscar usuário');
     }
@@ -107,12 +117,6 @@ export class UserService {
     }
   }
 
-  /**
-   * Atualiza dados de um usuário
-   * @param id ID do usuário
-   * @param updateData Dados para atualização
-   * @returns DTO do usuário atualizado
-   */
   public async updateUser(id: number, updateData: Partial<RegisterData>): Promise<UserDTO> {
     try {
       // Verifica se o usuário existe
@@ -175,11 +179,6 @@ export class UserService {
     }
   }
 
-  /**
-   * Converte User para UserDTO (remove senha)
-   * @param user Entidade User completa
-   * @returns UserDTO sem senha
-   */
   private toDTO(user: User): UserDTO {
     return {
       id: user.id,
@@ -187,4 +186,5 @@ export class UserService {
       email: user.email
     };
   }
+
 }

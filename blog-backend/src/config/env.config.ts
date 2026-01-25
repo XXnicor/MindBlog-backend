@@ -1,5 +1,6 @@
 import dotenv from 'dotenv';
 import path from 'path';
+import { Secret } from 'jsonwebtoken';
 
 // Carrega .env para process.env
 dotenv.config();
@@ -17,8 +18,8 @@ interface EnvConfig {
     name: string;
   };
   jwt: {
-    secret: string;
-    expiresIn: string;
+    secret: Secret;
+    expiresIn: string | number;
   };
   upload: {
     path: string;
@@ -59,8 +60,8 @@ export const config: EnvConfig = {
     name: getEnvOrThrow('DB_NAME'),
   },
   jwt: {
-    secret: getEnvOrThrow('JWT_SECRET'),
-    expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+    secret: getEnvOrThrow('JWT_SECRET') as Secret,
+    expiresIn: (process.env.JWT_EXPIRES_IN || '7d') as string | number,
   },
   upload: {
     path: process.env.UPLOAD_PATH || './uploads',

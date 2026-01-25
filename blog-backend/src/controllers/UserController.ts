@@ -88,13 +88,14 @@ export class UserController {
         return;
       }
 
-      const user = await this.userService.login(credentials);
+      const authResponse = await this.userService.login(credentials);
 
       res.status(200).json({
         success: true,
         message: 'Login realizado com sucesso',
-        data: user
+        data: authResponse
       });
+      
     } catch (error) {
       if (error instanceof Error) {
         if (error.message === 'Credenciais inválidas') {
