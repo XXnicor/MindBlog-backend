@@ -13,6 +13,7 @@ import {AuthMiddleware} from './src/middlewares/AuthMiddleware';
 import {createAuthRoutes} from './src/routes/authRoutes';
 import {createArticleRoutes} from './src/routes/articleRoutes';
 import path from 'path';
+import { errorHandler } from './src/middlewares/errorHandler';
 
 
 const app = express();
@@ -45,6 +46,9 @@ app.get('/', (req, res) => {
 app.use('/api', authRoutes);
 app.use('/api', articleRoutes);
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+
+// Error handler (deve vir depois das rotas)
+app.use(errorHandler);
 
 
 
