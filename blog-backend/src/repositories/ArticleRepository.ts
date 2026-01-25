@@ -5,6 +5,8 @@ import { Article, ArticleWithAuthor, CreateArticleData, UpdateArticleData, Pagin
 
       public async create(articleData: CreateArticleData, authorId: number): Promise<number> {
         try {
+          console.log('[ArticleRepository] Criando artigo no banco:', { articleData, authorId });
+          
           const tagsJson = articleData.tags ? JSON.stringify(articleData.tags) : null;
           
           const [result] = await connection.query<ResultSetHeader>(
@@ -22,8 +24,10 @@ import { Article, ArticleWithAuthor, CreateArticleData, UpdateArticleData, Pagin
             ]
           );
 
+          console.log('[ArticleRepository] Artigo inserido, insertId:', result.insertId);
           return result.insertId;
         } catch (error) {
+          console.error('[ArticleRepository] Erro ao criar artigo:', error);
           throw new Error(`Erro ao criar artigo: ${error}`);
         }
       }

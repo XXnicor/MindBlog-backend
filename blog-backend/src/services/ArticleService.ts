@@ -19,6 +19,8 @@ export class ArticleService {
    */
   public async createArticle(articleData: CreateArticleData, authorId: number): Promise<ArticleWithAuthor> {
     try {
+      console.log('[ArticleService] Criando artigo:', { articleData, authorId });
+
       // Validações
       if (!articleData.titulo || articleData.titulo.trim().length === 0) {
         throw new Error('Título é obrigatório');
@@ -41,6 +43,7 @@ export class ArticleService {
 
       // Cria o artigo
       const articleId = await this.articleRepository.create(articleData, authorId);
+      console.log('[ArticleService] Artigo criado com ID:', articleId);
 
       // Retorna o artigo criado com dados do autor
       const article = await this.articleRepository.findByIdWithAuthor(articleId);
@@ -50,6 +53,7 @@ export class ArticleService {
 
       return article;
     } catch (error) {
+      console.error('[ArticleService] Erro ao criar artigo:', error);
       if (error instanceof Error) {
         throw error;
       }

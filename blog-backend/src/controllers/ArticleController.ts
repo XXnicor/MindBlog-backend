@@ -79,12 +79,37 @@ export class ArticleController {
 
   public create = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
+      // Log para debug
+      console.log('[ArticleController] Criando artigo:', {
+        body: req.body,
+        file: req.file ? req.file.filename : 'sem arquivo',
+        userId: req.userId
+      });
+
+      // Processa tags de forma segura
+      let tags: string[] | undefined = undefined;
+      if (req.body.tags) {
+        if (Array.isArray(req.body.tags)) {
+          tags = req.body.tags;
+        } else if (typeof req.body.tags === 'string') {
+          try {
+            tags = JSON.parse(req.body.tags);
+          } catch (e) {
+            console.error('[ArticleController] Erro ao fazer parse das tags:', e);
+            res.status(400).json({
+              message: 'Tags inválidas'
+            });
+            return;
+          }
+        }
+      }
+
       let articleData: CreateArticleData = {
         titulo: req.body.titulo,
         conteudo: req.body.conteudo,
         resumo: req.body.resumo,
         categoria: req.body.categoria || 'Dev',
-        tags: req.body.tags ? JSON.parse(req.body.tags) : undefined,
+        tags: tags,
         imagem_banner: req.file ? req.file.filename : undefined
       };
       
@@ -111,6 +136,8 @@ export class ArticleController {
       });
 
     } catch (error) {
+      // Log do erro completo para debug
+      console.error('[ArticleController] Erro ao criar artigo:', error);
       
       if (error instanceof multer.MulterError) {
         if (error.code === 'LIMIT_FILE_SIZE') {
@@ -135,8 +162,8 @@ export class ArticleController {
       }
 
         res.status(500).json({
-        message: 'Erro ao criar artigo'
-
+        message: 'Erro ao criar artigo',
+        error: error instanceof Error ? error.message : 'Erro desconhecido'
       });
     }
   };
