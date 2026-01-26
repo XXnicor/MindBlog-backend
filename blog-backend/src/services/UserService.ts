@@ -203,6 +203,11 @@ export class UserService {
         }
       }
 
+      // Remove avatar do profileData se for undefined (não sobrescrever)
+      if (profileData.avatar === undefined) {
+        delete profileData.avatar;
+      }
+
       // Atualiza o perfil
       const updated = await this.userRepository.updateProfile(id, profileData);
       if (!updated) {

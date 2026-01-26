@@ -145,11 +145,18 @@ export class UserController {
         return;
       }
 
+      // Gera a URL completa do avatar se houver upload
+      let avatarUrl: string | undefined = undefined;
+      if (req.file) {
+        const baseUrl = `${req.protocol}://${req.get('host')}`;
+        avatarUrl = `${baseUrl}/uploads/${req.file.filename}`;
+      }
+
       const profileData: UpdateProfileData = {
         nome: req.body.nome,
         email: req.body.email,
         bio: req.body.bio,
-        avatar: req.file ? req.file.filename : undefined,
+        avatar: avatarUrl,
         senha_atual: req.body.senha_atual,
         senha_nova: req.body.senha_nova
       };
