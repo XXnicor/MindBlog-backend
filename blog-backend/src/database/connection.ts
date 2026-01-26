@@ -22,5 +22,4 @@ connection.getConnection((err, conn) => {
   }
 });
 
-// TODO: Exporte a versão promise() para usar async/await
 export default connection.promise();

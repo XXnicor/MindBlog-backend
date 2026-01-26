@@ -31,9 +31,6 @@ export class AuthMiddleware {
         return;
       }
        const decoded = jwt.verify(token,config.jwt.secret) as JwtPayload;
-        
-       console.log('[AuthMiddleware] Token decodificado:', decoded);
-       console.log('[AuthMiddleware] userId extraído:', decoded.userId, 'Tipo:', typeof decoded.userId);
        
        req.userId = decoded.userId;
         

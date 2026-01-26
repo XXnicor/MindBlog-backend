@@ -1,4 +1,3 @@
-// src/controllers/ArticleController.ts
 import { Request, Response } from 'express';
 import { ArticleService } from '../services/ArticleService';
 import { AuthRequest, CreateArticleData, UpdateArticleData } from '../types';
@@ -12,40 +11,23 @@ export class ArticleController {
     this.articleService = articleService;
   }
 
-  // Helper para formatar URL da imagem
   private formatImageUrl(article: any): any {
-    // Mantém o campo imagem_banner (nome do arquivo)
-    // E adiciona o campo imagem_banner_url (URL completa)
-    console.log('[ArticleController] Formatando imagem para artigo:', {
-      id: article.id,
-      titulo: article.titulo?.substring(0, 30),
-      imagem_banner: article.imagem_banner
-    });
-    
     if (article.imagem_banner) {
       const port = process.env.PORT || config.server.port;
       article.imagem_banner_url = `http://localhost:${port}/uploads/${article.imagem_banner}`;
-      console.log('[ArticleController] URL gerada:', article.imagem_banner_url);
     } else {
       article.imagem_banner_url = null;
-      console.log('[ArticleController] Sem imagem_banner, URL definida como null');
     }
     return article;
   }
 
   public listAll = async (req: Request, res: Response): Promise<void> => {
     try {
-      console.log('[ArticleController] Listando artigos:', req.query);
-      
-      // Parâmetros de paginação (default: page=1, limit=9)
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 9;
       const categoria = req.query.categoria as string;
       const search = req.query.search as string;
 
-      console.log('[ArticleController] Parâmetros:', { page, limit, categoria, search });
-
-      // Usa paginação sempre
       const result = await this.articleService.getArticlesWithPagination({
         page,
         limit,
@@ -53,12 +35,8 @@ export class ArticleController {
         search
       });
 
-      console.log('[ArticleController] Artigos encontrados:', result.articles.length);
-
-      // Formata URLs das imagens
       const articlesWithUrls = result.articles.map(article => this.formatImageUrl(article));
 
-      // Retorna formato esperado
       res.status(200).json({
         articles: articlesWithUrls,
         pagination: {
@@ -71,9 +49,6 @@ export class ArticleController {
         }
       });
     } catch (error) {
-      console.error('[ArticleController] Erro ao listar artigos:', error);
-      console.error('[ArticleController] Stack trace:', error instanceof Error ? error.stack : 'N/A');
-      
       res.status(500).json({
         message: 'Erro ao listar artigos',
         error: error instanceof Error ? error.message : 'Erro desconhecido'
@@ -115,14 +90,6 @@ export class ArticleController {
 
   public create = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-      // Log para debug
-      console.log('[ArticleController] Criando artigo:', {
-        body: req.body,
-        file: req.file ? req.file.filename : 'sem arquivo',
-        userId: req.userId
-      });
-
-      // Processa tags de forma segura
       let tags: string[] | undefined = undefined;
       if (req.body.tags) {
         if (Array.isArray(req.body.tags)) {
@@ -131,7 +98,6 @@ export class ArticleController {
           try {
             tags = JSON.parse(req.body.tags);
           } catch (e) {
-            console.error('[ArticleController] Erro ao fazer parse das tags:', e);
             res.status(400).json({
               message: 'Tags inválidas'
             });
@@ -150,8 +116,6 @@ export class ArticleController {
       };
       
       const userId = req.userId;
-
-      console.log('[ArticleController] CREATE - User ID do token:', userId, 'Tipo:', typeof userId);
 
       if (!userId) {
         res.status(401).json({
@@ -175,9 +139,6 @@ export class ArticleController {
       });
 
     } catch (error) {
-      // Log do erro completo para debug
-      console.error('[ArticleController] Erro ao criar artigo:', error);
-      
       if (error instanceof multer.MulterError) {
         if (error.code === 'LIMIT_FILE_SIZE') {
           res.status(400).json({
@@ -281,9 +242,6 @@ export class ArticleController {
     try {
       const id = parseInt(req.params.id);
       const userId = req.userId;
-
-      console.log('[ArticleController] DELETE - Artigo ID:', id);
-      console.log('[ArticleController] DELETE - User ID do token:', userId, 'Tipo:', typeof userId);
 
       if (isNaN(id)) {  
         res.status(400).json({

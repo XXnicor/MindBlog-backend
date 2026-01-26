@@ -20,39 +20,29 @@ import { createCommentRoutes } from './src/routes/commentRoutes';
 import path from 'path';
 import { errorHandler } from './src/middlewares/errorHandler';
 
-
 const app = express();
 
-
-app.use(cors(
-    {
-        origin: 'http://localhost:3000',
-        credentials: true
-    }
-));
-
+app.use(cors({
+    origin: 'http://localhost:3000',
+    credentials: true
+}));
 
 app.use(express.json());
 
-// Repositories
 const articleRepository = new ArticleRepository();
 const userRepository = new UserRepository();
 const commentRepository = new CommentRepository();
 
-// Services
 const articleService = new ArticleService(articleRepository);
 const userService = new UserService(userRepository);
 const commentService = new CommentService(commentRepository);
 
-// Controllers
 const articleController = new ArticleController(articleService);
 const userController = new UserController(userService);
 const commentController = new CommentController(commentService);
 
-// Middleware
 const authMiddleware = new AuthMiddleware();
 
-// Routes
 const authRoutes = createAuthRoutes(userController, authMiddleware);
 const userRoutes = createUserRoutes(userController, authMiddleware);
 const articleRoutes = createArticleRoutes(articleController, authMiddleware);
@@ -65,30 +55,20 @@ app.get('/', (req, res) => {
     res.json({ message: 'Backend do Blog MindGroup rodando!' });
 });
 
-// Registrar todas as rotas
 app.use('/api', authRoutes);
 app.use('/api', userRoutes);
 app.use('/api', articleRoutes);
 app.use('/api', commentRoutes);
 
-// Servir arquivos estáticos da pasta uploads
 const uploadsPath = path.join(__dirname, 'uploads');
-console.log(`📁 Servindo arquivos estáticos de: ${uploadsPath}`);
 app.use('/uploads', express.static(uploadsPath));
 
-// Adicionar log para debug de requisições de arquivos
 app.use('/uploads', (req, res, next) => {
-    console.log(`[Static Files] Requisição para: ${req.url}`);
-    console.log(`[Static Files] Arquivo não encontrado: ${path.join(uploadsPath, req.url)}`);
     res.status(404).json({ error: 'Arquivo não encontrado', path: req.url });
 });
 
-// Error handler (deve vir depois das rotas)
 app.use(errorHandler);
-
-
 
 app.listen(config.server.port, () => {
     console.log(`🚀 Servidor rodando na porta ${PORT}`);
-    console.log(`Ambiente: ${process.env.NODE_ENV}`);
 });

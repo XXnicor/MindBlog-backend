@@ -1,4 +1,3 @@
-// src/repositories/UserRepository.ts
 import { RowDataPacket, ResultSetHeader } from 'mysql2';
 import connection from '../database/database';
 import { RegisterData, UserRow, UpdateProfileData, UserStats } from '../types';

@@ -1,4 +1,3 @@
-// src/controllers/UserController.ts
 import { Request, Response } from 'express';
 import { UserService } from '../services/UserService';
 import { RegisterData, LoginCredentials, AuthRequest, UpdateProfileData } from '../types';
@@ -10,10 +9,6 @@ export class UserController {
     this.userService = userService;
   }
 
-  /**
-   * Registra um novo usuário
-   * POST /auth/register
-   */
   public register = async (req: Request, res: Response): Promise<void> => {
     try {
       const registerData: RegisterData = req.body;
@@ -69,10 +64,6 @@ export class UserController {
     }
   };
 
-  /**
-   * Autentica um usuário
-   * POST /auth/login
-   */
   public login = async (req: Request, res: Response): Promise<void> => {
     try {
       const credentials: LoginCredentials = req.body;
@@ -113,10 +104,6 @@ export class UserController {
     }
   };
 
-  /**
-   * Obtém dados do usuário autenticado
-   * GET /auth/me
-   */
   public me = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const userId = req.userId;
@@ -147,10 +134,6 @@ export class UserController {
     }
   };
 
-  /**
-   * Atualiza perfil do usuário
-   * PUT /users/profile
-   */
   public updateProfile = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const userId = req.userId;
@@ -215,10 +198,6 @@ export class UserController {
     }
   };
 
-  /**
-   * Obtém estatísticas do usuário
-   * GET /users/stats
-   */
   public getStats = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const userId = req.userId;
@@ -242,10 +221,6 @@ export class UserController {
     }
   };
 
-  /**
-   * Busca um usuário por ID
-   * GET /users/:id
-   */
   public getById = async (req: Request, res: Response): Promise<void> => {
     try {
       const id = parseInt(req.params.id);
@@ -276,10 +251,6 @@ export class UserController {
     }
   };
 
-  /**
-   * Lista todos os usuários
-   * GET /users
-   */
   public getAll = async (req: Request, res: Response): Promise<void> => {
     try {
       const users = await this.userService.getAllUsers();
@@ -294,10 +265,6 @@ export class UserController {
     }
   };
 
-  /**
-   * Atualiza um usuário
-   * PUT /users/:id
-   */
   public update = async (req: Request, res: Response): Promise<void> => {
     try {
       const id = parseInt(req.params.id);
@@ -356,10 +323,6 @@ export class UserController {
     }
   };
 
-  /**
-   * Deleta um usuário
-   * DELETE /users/:id
-   */
   public delete = async (req: Request, res: Response): Promise<void> => {
     try {
       const id = parseInt(req.params.id);

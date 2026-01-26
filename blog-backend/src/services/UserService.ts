@@ -15,7 +15,6 @@ export class UserService {
 
   public async register(registerData: RegisterData): Promise<AuthResponse> {
     try {
-      // Verifica se o email já está em uso
       const existingUser = await this.userRepository.findByEmail(registerData.email);
       if (existingUser) {
         throw new Error('Email já cadastrado');
@@ -120,10 +119,6 @@ export class UserService {
     }
   }
 
-  /**
-   * Lista todos os usuários
-   * @returns Array de DTOs de usuários
-   */
   public async getAllUsers(): Promise<UserDTO[]> {
     try {
       const users = await this.userRepository.findAll();

@@ -5,8 +5,6 @@ import { Article, ArticleWithAuthor, CreateArticleData, UpdateArticleData, Pagin
 
       public async create(articleData: CreateArticleData, authorId: number): Promise<number> {
         try {
-          console.log('[ArticleRepository] Criando artigo no banco:', { articleData, authorId });
-          
           const tagsJson = articleData.tags ? JSON.stringify(articleData.tags) : null;
           
           const [result] = await connection.query<ResultSetHeader>(
@@ -24,10 +22,8 @@ import { Article, ArticleWithAuthor, CreateArticleData, UpdateArticleData, Pagin
             ]
           );
 
-          console.log('[ArticleRepository] Artigo inserido, insertId:', result.insertId);
           return result.insertId;
         } catch (error) {
-          console.error('[ArticleRepository] Erro ao criar artigo:', error);
           throw new Error(`Erro ao criar artigo: ${error}`);
         }
       }
@@ -110,8 +106,6 @@ import { Article, ArticleWithAuthor, CreateArticleData, UpdateArticleData, Pagin
 
       public async findWithPagination(params: PaginationParams): Promise<PaginationResult<ArticleWithAuthor>> {
         try {
-          console.log('[ArticleRepository] Buscando artigos com paginação:', params);
-          
           const { page, limit, categoria, search } = params;
           const offset = (page - 1) * limit;
 
@@ -131,9 +125,6 @@ import { Article, ArticleWithAuthor, CreateArticleData, UpdateArticleData, Pagin
 
           const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
 
-          console.log('[ArticleRepository] WHERE clause:', whereClause);
-          console.log('[ArticleRepository] Query params:', queryParams);
-
           // Buscar total de itens
           const [countRows] = await connection.query<RowDataPacket[]>(
             `SELECT COUNT(*) as total FROM articles a ${whereClause}`,
@@ -141,8 +132,6 @@ import { Article, ArticleWithAuthor, CreateArticleData, UpdateArticleData, Pagin
           );
           const totalItems = countRows[0].total;
           
-          console.log('[ArticleRepository] Total de artigos:', totalItems);
-
           // Buscar artigos com paginação
           const [rows] = await connection.query<RowDataPacket[]>(
             `SELECT 
@@ -163,8 +152,6 @@ import { Article, ArticleWithAuthor, CreateArticleData, UpdateArticleData, Pagin
           const articles = rows as ArticleWithAuthor[];
           const totalPages = Math.ceil(totalItems / limit) || 1; // Sempre retorna pelo menos 1 página
           
-          console.log('[ArticleRepository] Artigos retornados:', articles.length);
-
           return {
             articles,
             pagination: {
@@ -175,8 +162,6 @@ import { Article, ArticleWithAuthor, CreateArticleData, UpdateArticleData, Pagin
             }
           };
         } catch (error) {
-          console.error('[ArticleRepository] Erro ao buscar artigos com paginação:', error);
-          console.error('[ArticleRepository] Stack trace:', error instanceof Error ? error.stack : 'N/A');
           throw new Error(`Erro ao buscar artigos com paginação: ${error}`);
         }
       }
@@ -270,29 +255,10 @@ import { Article, ArticleWithAuthor, CreateArticleData, UpdateArticleData, Pagin
 
       public async isAuthor(articleId: number, userId: number): Promise<boolean> {
         try {
-          console.log('[ArticleRepository] isAuthor - Verificando:', { articleId, userId });
-          console.log('[ArticleRepository] isAuthor - Tipos:', { articleId: typeof articleId, userId: typeof userId });
-          
           const [rows] = await connection.query<RowDataPacket[]>(
             'SELECT id, id_autor FROM articles WHERE id = ? AND id_autor = ?',
             [articleId, userId]
           );
-
-          console.log('[ArticleRepository] isAuthor - Rows encontradas:', rows.length);
-          if (rows.length > 0) {
-            console.log('[ArticleRepository] isAuthor - Dados da row:', rows[0]);
-          } else {
-            // Buscar o artigo para ver qual é o autor real
-            const [checkRows] = await connection.query<RowDataPacket[]>(
-              'SELECT id, id_autor FROM articles WHERE id = ?',
-              [articleId]
-            );
-            if (checkRows.length > 0) {
-              console.log('[ArticleRepository] isAuthor - Autor real do artigo:', checkRows[0].id_autor, 'tipo:', typeof checkRows[0].id_autor);
-              console.log('[ArticleRepository] isAuthor - User ID recebido:', userId, 'tipo:', typeof userId);
-              console.log('[ArticleRepository] isAuthor - São iguais?', checkRows[0].id_autor == userId, '(==) |', checkRows[0].id_autor === userId, '(===)');
-            }
-          }
 
           return rows.length > 0;
         } catch (error) {

@@ -9,10 +9,6 @@ export class CommentController {
     this.commentService = commentService;
   }
 
-  /**
-   * Lista comentários de um artigo
-   * GET /articles/:id/comments
-   */
   public list = async (req: Request, res: Response): Promise<void> => {
     try {
       const articleId = parseInt(req.params.id);
@@ -26,7 +22,6 @@ export class CommentController {
 
       const comments = await this.commentService.getCommentsByArticleId(articleId);
 
-      // Formatar resposta conforme requisitos
       const formattedComments = comments.map(comment => ({
         id: comment.id.toString(),
         text: comment.text,
@@ -48,10 +43,6 @@ export class CommentController {
     }
   };
 
-  /**
-   * Cria um novo comentário
-   * POST /articles/:id/comments
-   */
   public create = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const articleId = parseInt(req.params.id);
@@ -81,7 +72,6 @@ export class CommentController {
 
       const comment = await this.commentService.createComment(commentData, articleId, userId);
 
-      // Formatar resposta conforme requisitos
       const formattedComment = {
         id: comment.id.toString(),
         text: comment.text,
@@ -114,10 +104,6 @@ export class CommentController {
     }
   };
 
-  /**
-   * Deleta um comentário
-   * DELETE /comments/:id
-   */
   public delete = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const commentId = parseInt(req.params.id);
