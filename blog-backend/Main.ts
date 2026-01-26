@@ -72,7 +72,16 @@ app.use('/api', articleRoutes);
 app.use('/api', commentRoutes);
 
 // Servir arquivos estáticos da pasta uploads
-app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+const uploadsPath = path.join(__dirname, 'uploads');
+console.log(`📁 Servindo arquivos estáticos de: ${uploadsPath}`);
+app.use('/uploads', express.static(uploadsPath));
+
+// Adicionar log para debug de requisições de arquivos
+app.use('/uploads', (req, res, next) => {
+    console.log(`[Static Files] Requisição para: ${req.url}`);
+    console.log(`[Static Files] Arquivo não encontrado: ${path.join(uploadsPath, req.url)}`);
+    res.status(404).json({ error: 'Arquivo não encontrado', path: req.url });
+});
 
 // Error handler (deve vir depois das rotas)
 app.use(errorHandler);
