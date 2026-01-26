@@ -101,8 +101,12 @@ export class ArticleService {
    */
   public async getArticlesWithPagination(params: PaginationParams): Promise<PaginationResult<ArticleWithAuthor>> {
     try {
-      return await this.articleRepository.findWithPagination(params);
+      console.log('[ArticleService] Buscando artigos com paginação:', params);
+      const result = await this.articleRepository.findWithPagination(params);
+      console.log('[ArticleService] Artigos encontrados:', result.articles.length);
+      return result;
     } catch (error) {
+      console.error('[ArticleService] Erro ao listar artigos com paginação:', error);
       throw new Error('Erro ao listar artigos com paginação');
     }
   }

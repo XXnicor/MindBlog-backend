@@ -110,6 +110,8 @@ import { Article, ArticleWithAuthor, CreateArticleData, UpdateArticleData, Pagin
 
       public async findWithPagination(params: PaginationParams): Promise<PaginationResult<ArticleWithAuthor>> {
         try {
+          console.log('[ArticleRepository] Buscando artigos com paginação:', params);
+          
           const { page, limit, categoria, search } = params;
           const offset = (page - 1) * limit;
 
@@ -129,12 +131,17 @@ import { Article, ArticleWithAuthor, CreateArticleData, UpdateArticleData, Pagin
 
           const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
 
+          console.log('[ArticleRepository] WHERE clause:', whereClause);
+          console.log('[ArticleRepository] Query params:', queryParams);
+
           // Buscar total de itens
           const [countRows] = await connection.query<RowDataPacket[]>(
             `SELECT COUNT(*) as total FROM articles a ${whereClause}`,
             queryParams
           );
           const totalItems = countRows[0].total;
+          
+          console.log('[ArticleRepository] Total de artigos:', totalItems);
 
           // Buscar artigos com paginação
           const [rows] = await connection.query<RowDataPacket[]>(
@@ -154,7 +161,9 @@ import { Article, ArticleWithAuthor, CreateArticleData, UpdateArticleData, Pagin
           );
 
           const articles = rows as ArticleWithAuthor[];
-          const totalPages = Math.ceil(totalItems / limit);
+          const totalPages = Math.ceil(totalItems / limit) || 1; // Sempre retorna pelo menos 1 página
+          
+          console.log('[ArticleRepository] Artigos retornados:', articles.length);
 
           return {
             articles,
@@ -166,6 +175,8 @@ import { Article, ArticleWithAuthor, CreateArticleData, UpdateArticleData, Pagin
             }
           };
         } catch (error) {
+          console.error('[ArticleRepository] Erro ao buscar artigos com paginação:', error);
+          console.error('[ArticleRepository] Stack trace:', error instanceof Error ? error.stack : 'N/A');
           throw new Error(`Erro ao buscar artigos com paginação: ${error}`);
         }
       }

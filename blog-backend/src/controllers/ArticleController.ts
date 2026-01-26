@@ -14,49 +14,69 @@ export class ArticleController {
 
   // Helper para formatar URL da imagem
   private formatImageUrl(article: any): any {
+    // Mantém o campo imagem_banner (nome do arquivo)
+    // E adiciona o campo imagem_banner_url (URL completa)
+    console.log('[ArticleController] Formatando imagem para artigo:', {
+      id: article.id,
+      titulo: article.titulo?.substring(0, 30),
+      imagem_banner: article.imagem_banner
+    });
+    
     if (article.imagem_banner) {
       const port = process.env.PORT || config.server.port;
       article.imagem_banner_url = `http://localhost:${port}/uploads/${article.imagem_banner}`;
+      console.log('[ArticleController] URL gerada:', article.imagem_banner_url);
+    } else {
+      article.imagem_banner_url = null;
+      console.log('[ArticleController] Sem imagem_banner, URL definida como null');
     }
     return article;
   }
 
   public listAll = async (req: Request, res: Response): Promise<void> => {
     try {
-      // Verifica se há parâmetros de paginação
+      console.log('[ArticleController] Listando artigos:', req.query);
+      
+      // Parâmetros de paginação (default: page=1, limit=9)
       const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 10;
+      const limit = parseInt(req.query.limit as string) || 9;
       const categoria = req.query.categoria as string;
       const search = req.query.search as string;
 
-      // Se houver parâmetros, usa paginação
-      if (req.query.page || req.query.limit || req.query.categoria || req.query.search) {
-        const result = await this.articleService.getArticlesWithPagination({
-          page,
-          limit,
-          categoria,
-          search
-        });
+      console.log('[ArticleController] Parâmetros:', { page, limit, categoria, search });
 
-        // Formata URLs das imagens
-        result.data = result.data.map(article => this.formatImageUrl(article));
+      // Usa paginação sempre
+      const result = await this.articleService.getArticlesWithPagination({
+        page,
+        limit,
+        categoria,
+        search
+      });
 
-        res.status(200).json({
-          data: result
-        });
-        return;
-      }
+      console.log('[ArticleController] Artigos encontrados:', result.articles.length);
 
-      // Caso contrário, retorna todos
-      const articles = await this.articleService.getAllArticles();
-      const articlesWithUrls = articles.map(article => this.formatImageUrl(article));
+      // Formata URLs das imagens
+      const articlesWithUrls = result.articles.map(article => this.formatImageUrl(article));
 
+      // Retorna formato esperado
       res.status(200).json({
-        data: articlesWithUrls
+        articles: articlesWithUrls,
+        pagination: {
+          currentPage: result.pagination.currentPage,
+          totalPages: result.pagination.totalPages,
+          totalItems: result.pagination.totalItems,
+          itemsPerPage: result.pagination.itemsPerPage,
+          hasNextPage: result.pagination.currentPage < result.pagination.totalPages,
+          hasPreviousPage: result.pagination.currentPage > 1
+        }
       });
     } catch (error) {
+      console.error('[ArticleController] Erro ao listar artigos:', error);
+      console.error('[ArticleController] Stack trace:', error instanceof Error ? error.stack : 'N/A');
+      
       res.status(500).json({
-        message: 'Erro ao listar artigos'
+        message: 'Erro ao listar artigos',
+        error: error instanceof Error ? error.message : 'Erro desconhecido'
       });
     }
   };
