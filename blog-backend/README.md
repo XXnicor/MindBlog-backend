@@ -4,6 +4,58 @@ API RESTful desenvolvida em **Node.js** com **Express** e **TypeScript** para ge
 
 ---
 
+## 🎥 Demonstração do Sistema
+
+Veja o sistema em ação! Abaixo estão as principais funcionalidades demonstradas:
+
+<div align="center">
+
+### 🔐 Autenticação e Login
+<img src="docs/gifs/login-register.gif" alt="Demonstração de Login e Cadastro" width="800px">
+
+*Registro de novos usuários e autenticação JWT com validação de credenciais*
+
+---
+
+### 📝 Criação e Gerenciamento de Artigos
+<img src="docs/gifs/create-article.gif" alt="Criar e editar artigos" width="800px">
+
+*Criação de artigos com upload de banner, categorias, tags e editor de conteúdo*
+
+---
+
+### 🖼️ Upload de Avatar de Perfil
+<img src="docs/gifs/upload-avatar.gif" alt="Upload de foto de perfil" width="800px">
+
+*Atualização de perfil do usuário com upload de avatar e edição de informações*
+
+---
+
+### 💬 Sistema de Comentários
+<img src="docs/gifs/comments.gif" alt="Sistema de comentários" width="800px">
+
+*Interação entre usuários através de comentários em artigos com validação de autenticação*
+
+---
+
+### 📊 Listagem e Busca de Artigos
+<img src="docs/gifs/list-search.gif" alt="Listagem e busca" width="800px">
+
+*Sistema de paginação, filtros por categoria e busca em tempo real*
+
+---
+
+### 📈 Dashboard e Estatísticas
+<img src="docs/gifs/stats-dashboard.gif" alt="Dashboard de estatísticas" width="800px">
+
+*Visualização de estatísticas do usuário: artigos publicados, comentários e engajamento*
+
+</div>
+
+> 💡 **Nota**: Coloque seus GIFs de demonstração na pasta `docs/gifs/` com os nomes correspondentes mostrados acima.
+
+---
+
 ## 🚀 Tecnologias
 
 Este projeto utiliza as seguintes tecnologias e bibliotecas:
