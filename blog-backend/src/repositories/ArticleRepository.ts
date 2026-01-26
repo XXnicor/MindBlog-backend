@@ -270,10 +270,29 @@ import { Article, ArticleWithAuthor, CreateArticleData, UpdateArticleData, Pagin
 
       public async isAuthor(articleId: number, userId: number): Promise<boolean> {
         try {
+          console.log('[ArticleRepository] isAuthor - Verificando:', { articleId, userId });
+          console.log('[ArticleRepository] isAuthor - Tipos:', { articleId: typeof articleId, userId: typeof userId });
+          
           const [rows] = await connection.query<RowDataPacket[]>(
-            'SELECT id FROM articles WHERE id = ? AND id_autor = ?',
+            'SELECT id, id_autor FROM articles WHERE id = ? AND id_autor = ?',
             [articleId, userId]
           );
+
+          console.log('[ArticleRepository] isAuthor - Rows encontradas:', rows.length);
+          if (rows.length > 0) {
+            console.log('[ArticleRepository] isAuthor - Dados da row:', rows[0]);
+          } else {
+            // Buscar o artigo para ver qual é o autor real
+            const [checkRows] = await connection.query<RowDataPacket[]>(
+              'SELECT id, id_autor FROM articles WHERE id = ?',
+              [articleId]
+            );
+            if (checkRows.length > 0) {
+              console.log('[ArticleRepository] isAuthor - Autor real do artigo:', checkRows[0].id_autor, 'tipo:', typeof checkRows[0].id_autor);
+              console.log('[ArticleRepository] isAuthor - User ID recebido:', userId, 'tipo:', typeof userId);
+              console.log('[ArticleRepository] isAuthor - São iguais?', checkRows[0].id_autor == userId, '(==) |', checkRows[0].id_autor === userId, '(===)');
+            }
+          }
 
           return rows.length > 0;
         } catch (error) {

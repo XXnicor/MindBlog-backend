@@ -20,6 +20,7 @@ export class ArticleService {
   public async createArticle(articleData: CreateArticleData, authorId: number): Promise<ArticleWithAuthor> {
     try {
       console.log('[ArticleService] Criando artigo:', { articleData, authorId });
+      console.log('[ArticleService] CREATE - Author ID:', authorId, 'Tipo:', typeof authorId);
 
       // Validações
       if (!articleData.titulo || articleData.titulo.trim().length === 0) {
@@ -199,6 +200,8 @@ export class ArticleService {
    */
   public async deleteArticle(id: number, userId: number): Promise<boolean> {
     try {
+      console.log('[ArticleService] DELETE - Artigo ID:', id, 'User ID:', userId);
+      
       // Verifica se o artigo existe
       const article = await this.articleRepository.findById(id);
 
@@ -206,8 +209,12 @@ export class ArticleService {
         throw new Error('Artigo não encontrado');
       }
 
+      console.log('[ArticleService] DELETE - Artigo encontrado:', { id: article.id, id_autor: article.id_autor });
+      console.log('[ArticleService] DELETE - Comparação: article.id_autor=', article.id_autor, 'typeof=', typeof article.id_autor, '| userId=', userId, 'typeof=', typeof userId);
+
       // Verifica se o usuário é o autor
       const isAuthor = await this.articleRepository.isAuthor(id, userId);
+      console.log('[ArticleService] DELETE - isAuthor resultado:', isAuthor);
       if (!isAuthor) {
         throw new Error('Você não tem permissão para deletar este artigo');
       }

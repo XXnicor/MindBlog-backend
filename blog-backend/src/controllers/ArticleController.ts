@@ -151,6 +151,8 @@ export class ArticleController {
       
       const userId = req.userId;
 
+      console.log('[ArticleController] CREATE - User ID do token:', userId, 'Tipo:', typeof userId);
+
       if (!userId) {
         res.status(401).json({
           message: 'Usuário não autenticado'
@@ -279,6 +281,9 @@ export class ArticleController {
     try {
       const id = parseInt(req.params.id);
       const userId = req.userId;
+
+      console.log('[ArticleController] DELETE - Artigo ID:', id);
+      console.log('[ArticleController] DELETE - User ID do token:', userId, 'Tipo:', typeof userId);
 
       if (isNaN(id)) {  
         res.status(400).json({
