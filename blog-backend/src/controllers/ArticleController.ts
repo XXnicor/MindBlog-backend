@@ -3,12 +3,22 @@ import { Request, Response } from 'express';
 import { ArticleService } from '../services/ArticleService';
 import { AuthRequest, CreateArticleData, UpdateArticleData } from '../types';
 import multer from 'multer';
+import { config } from '../config/env.config';
 
 export class ArticleController {
   private articleService: ArticleService;
 
   constructor(articleService: ArticleService) {
     this.articleService = articleService;
+  }
+
+  // Helper para formatar URL da imagem
+  private formatImageUrl(article: any): any {
+    if (article.imagem_banner) {
+      const port = process.env.PORT || config.server.port;
+      article.imagem_banner_url = `http://localhost:${port}/uploads/${article.imagem_banner}`;
+    }
+    return article;
   }
 
   public listAll = async (req: Request, res: Response): Promise<void> => {
@@ -28,6 +38,9 @@ export class ArticleController {
           search
         });
 
+        // Formata URLs das imagens
+        result.data = result.data.map(article => this.formatImageUrl(article));
+
         res.status(200).json({
           data: result
         });
@@ -36,9 +49,10 @@ export class ArticleController {
 
       // Caso contrário, retorna todos
       const articles = await this.articleService.getAllArticles();
+      const articlesWithUrls = articles.map(article => this.formatImageUrl(article));
 
       res.status(200).json({
-        data: articles
+        data: articlesWithUrls
       });
     } catch (error) {
       res.status(500).json({
@@ -67,8 +81,10 @@ export class ArticleController {
         return;
       }
 
+      const articleWithUrl = this.formatImageUrl(article);
+
       res.status(200).json({
-        data: article
+        data: articleWithUrl
       });
     } catch (error) {
       res.status(500).json({
@@ -130,9 +146,10 @@ export class ArticleController {
       }
 
       const article = await this.articleService.createArticle(articleData, userId);
+      const articleWithUrl = this.formatImageUrl(article);
 
       res.status(201).json({
-        data: article
+        data: articleWithUrl
       });
 
     } catch (error) {
@@ -201,9 +218,10 @@ export class ArticleController {
       }
 
       const updatedArticle = await this.articleService.updateArticle(id, userId, updateData);
+      const articleWithUrl = this.formatImageUrl(updatedArticle);
 
       res.status(200).json({
-        data: updatedArticle
+        data: articleWithUrl
       });
       
     } catch (error) {
