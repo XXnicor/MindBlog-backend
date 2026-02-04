@@ -16,8 +16,8 @@ export function createUserRoutes(
   // Rotas públicas (ou para admin)
   router.get('/users/:id', userController.getById);
   router.get('/users', userController.getAll);
-  router.put('/users/:id', userController.update);
-  router.delete('/users/:id', userController.delete);
+  router.put('/users/:id', userController.update); // deveria ser protegida 
+  router.delete('/users/:id', userController.delete);// deveria ser protegida
 
   return router;
 }
