@@ -104,7 +104,7 @@ export class UserController {
     }
   };
 
-  public me = async (req: AuthRequest, res: Response): Promise<void> => {
+  public getProfile = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const userId = req.userId;
 
