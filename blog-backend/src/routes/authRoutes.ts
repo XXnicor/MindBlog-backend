@@ -10,7 +10,7 @@ export function createAuthRoutes(
 
   router.post('/auth/register', userController.register);
   router.post('/auth/login', userController.login);
-  router.get('/auth/me', authMiddleware.authenticate, userController.me);
+  router.get('/auth/me', authMiddleware.authenticate, userController.getProfile);
 
   return router;
 }
