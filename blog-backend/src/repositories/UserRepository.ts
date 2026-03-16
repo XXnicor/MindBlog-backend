@@ -1,17 +1,14 @@
-import { RowDataPacket, ResultSetHeader } from 'mysql2';
 import connection from '../database/database';
 import { RegisterData, UserRow, UpdateProfileData, UserStats } from '../types';
 import { User } from '../models/User';
 
 export class UserRepository {
-
   private toDomain(row: UserRow): User {
     const user = User.fromDatabase(row);
     return user;
   }
- 
-  private toPersistence(user: User): Partial<UserRow> {
 
+  private toPersistence(user: User): Partial<UserRow> {
     const out: Partial<UserRow> = {};
 
     if (user.id !== null) {
@@ -28,19 +25,15 @@ export class UserRepository {
     return out;
   }
 
-
   public async findByEmail(email: string): Promise<User | null> {
     try {
-      const [rows] = await connection.query<RowDataPacket[]>(
-        'SELECT * FROM users WHERE email = ?',
-        [email]
-      );
+      const result = await connection.query<UserRow>('SELECT * FROM users WHERE email = $1', [email]);
 
-      if (rows.length === 0) {
+      if (result.rows.length === 0) {
         return null;
       }
 
-      return this.toDomain(rows[0] as UserRow);
+      return this.toDomain(result.rows[0]);
     } catch (error) {
       throw new Error(`Erro ao buscar usuário por email: ${error}`);
     }
@@ -48,16 +41,13 @@ export class UserRepository {
 
   public async findById(id: number): Promise<User | null> {
     try {
-      const [rows] = await connection.query<RowDataPacket[]>(
-        'SELECT * FROM users WHERE id = ?',
-        [id]
-      );
+      const result = await connection.query<UserRow>('SELECT * FROM users WHERE id = $1', [id]);
 
-      if (rows.length === 0) {
+      if (result.rows.length === 0) {
         return null;
       }
 
-      return this.toDomain(rows[0] as UserRow);
+      return this.toDomain(result.rows[0]);
     } catch (error) {
       throw new Error(`Erro ao buscar usuário por ID: ${error}`);
     }
@@ -65,12 +55,12 @@ export class UserRepository {
 
   public async create(userData: RegisterData): Promise<number> {
     try {
-      const [result] = await connection.query<ResultSetHeader>(
-        'INSERT INTO users (nome, email, senha, avatar, bio) VALUES (?, ?, ?, ?, ?)',
+      const result = await connection.query<{ id: number }>(
+        'INSERT INTO users (nome, email, senha, avatar, bio) VALUES ($1, $2, $3, $4, $5) RETURNING id',
         [userData.nome, userData.email, userData.senha, userData.avatar || null, userData.bio || null]
       );
 
-      return result.insertId;
+      return result.rows[0].id;
     } catch (error) {
       throw new Error(`Erro ao criar usuário: ${error}`);
     }
@@ -78,41 +68,40 @@ export class UserRepository {
 
   public async findAll(): Promise<User[]> {
     try {
-      const [rows] = await connection.query<RowDataPacket[]>(
+      const result = await connection.query<User>(
         'SELECT id, nome, email, avatar, bio, created_at, updated_at FROM users'
       );
 
-      return rows as User[];
+      return result.rows;
     } catch (error) {
       throw new Error(`Erro ao listar usuários: ${error}`);
     }
   }
 
-  
   public async update(id: number, userData: Partial<RegisterData>): Promise<boolean> {
     try {
       const fields: string[] = [];
-      const values: any[] = [];
+      const values: unknown[] = [];
 
       if (userData.nome) {
-        fields.push('nome = ?');
         values.push(userData.nome);
+        fields.push(`nome = $${values.length}`);
       }
       if (userData.email) {
-        fields.push('email = ?');
         values.push(userData.email);
+        fields.push(`email = $${values.length}`);
       }
       if (userData.senha) {
-        fields.push('senha = ?');
         values.push(userData.senha);
+        fields.push(`senha = $${values.length}`);
       }
       if (userData.avatar !== undefined) {
-        fields.push('avatar = ?');
         values.push(userData.avatar);
+        fields.push(`avatar = $${values.length}`);
       }
       if (userData.bio !== undefined) {
-        fields.push('bio = ?');
         values.push(userData.bio);
+        fields.push(`bio = $${values.length}`);
       }
 
       if (fields.length === 0) {
@@ -120,13 +109,14 @@ export class UserRepository {
       }
 
       values.push(id);
+      const idPlaceholder = `$${values.length}`;
 
-      const [result] = await connection.query<ResultSetHeader>(
-        `UPDATE users SET ${fields.join(', ')} WHERE id = ?`,
+      const result = await connection.query(
+        `UPDATE users SET ${fields.join(', ')} WHERE id = ${idPlaceholder}`,
         values
       );
 
-      return result.affectedRows > 0;
+      return (result.rowCount ?? 0) > 0;
     } catch (error) {
       throw new Error(`Erro ao atualizar usuário: ${error}`);
     }
@@ -135,27 +125,27 @@ export class UserRepository {
   public async updateProfile(id: number, profileData: UpdateProfileData): Promise<boolean> {
     try {
       const fields: string[] = [];
-      const values: any[] = [];
+      const values: unknown[] = [];
 
       if (profileData.nome) {
-        fields.push('nome = ?');
         values.push(profileData.nome);
+        fields.push(`nome = $${values.length}`);
       }
       if (profileData.email) {
-        fields.push('email = ?');
         values.push(profileData.email);
+        fields.push(`email = $${values.length}`);
       }
       if (profileData.bio !== undefined) {
-        fields.push('bio = ?');
         values.push(profileData.bio);
+        fields.push(`bio = $${values.length}`);
       }
       if (profileData.avatar !== undefined) {
-        fields.push('avatar = ?');
         values.push(profileData.avatar);
+        fields.push(`avatar = $${values.length}`);
       }
       if (profileData.senha_nova) {
-        fields.push('senha = ?');
         values.push(profileData.senha_nova);
+        fields.push(`senha = $${values.length}`);
       }
 
       if (fields.length === 0) {
@@ -163,13 +153,14 @@ export class UserRepository {
       }
 
       values.push(id);
+      const idPlaceholder = `$${values.length}`;
 
-      const [result] = await connection.query<ResultSetHeader>(
-        `UPDATE users SET ${fields.join(', ')} WHERE id = ?`,
+      const result = await connection.query(
+        `UPDATE users SET ${fields.join(', ')} WHERE id = ${idPlaceholder}`,
         values
       );
 
-      return result.affectedRows > 0;
+      return (result.rowCount ?? 0) > 0;
     } catch (error) {
       throw new Error(`Erro ao atualizar perfil: ${error}`);
     }
@@ -177,37 +168,34 @@ export class UserRepository {
 
   public async getUserStats(userId: number): Promise<UserStats> {
     try {
-      const [rows] = await connection.query<RowDataPacket[]>(
+      const result = await connection.query<UserStats>(
         `SELECT 
-          COUNT(DISTINCT a.id) as totalArticles,
-          COALESCE(SUM(a.views), 0) as totalViews,
-          COALESCE(SUM(a.likes), 0) as totalLikes,
-          (SELECT COUNT(*) FROM comments WHERE id_article IN (SELECT id FROM articles WHERE id_autor = ?)) as totalComments
+          COUNT(DISTINCT a.id) as "totalArticles",
+          COALESCE(SUM(a.views), 0) as "totalViews",
+          COALESCE(SUM(a.likes), 0) as "totalLikes",
+          (SELECT COUNT(*) FROM comments WHERE id_article IN (SELECT id FROM articles WHERE id_autor = $1)) as "totalComments"
         FROM articles a
-        WHERE a.id_autor = ?`,
+        WHERE a.id_autor = $2`,
         [userId, userId]
       );
 
-      const stats = rows[0];
+      const stats = result.rows[0];
       return {
-        totalArticles: stats.totalArticles || 0,
-        totalViews: stats.totalViews || 0,
-        totalLikes: stats.totalLikes || 0,
-        totalComments: stats.totalComments || 0
+        totalArticles: Number(stats?.totalArticles) || 0,
+        totalViews: Number(stats?.totalViews) || 0,
+        totalLikes: Number(stats?.totalLikes) || 0,
+        totalComments: Number(stats?.totalComments) || 0,
       };
     } catch (error) {
       throw new Error(`Erro ao buscar estatísticas do usuário: ${error}`);
     }
   }
-  
+
   public async delete(id: number): Promise<boolean> {
     try {
-      const [result] = await connection.query<ResultSetHeader>(
-        'DELETE FROM users WHERE id = ?',
-        [id]
-      );
+      const result = await connection.query('DELETE FROM users WHERE id = $1', [id]);
 
-      return result.affectedRows > 0;
+      return (result.rowCount ?? 0) > 0;
     } catch (error) {
       throw new Error(`Erro ao deletar usuário: ${error}`);
     }

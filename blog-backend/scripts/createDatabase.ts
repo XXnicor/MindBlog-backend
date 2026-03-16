@@ -1,30 +1,43 @@
 import dotenv from 'dotenv';
-import mysql from 'mysql2/promise';
+import { Client } from 'pg';
 
 dotenv.config();
 
-async function main() {
-  const dbName = process.env.DB_NAME;
-  if (!dbName) {
-    console.error('ERRO: variável DB_NAME não definida no .env');
+async function createDatabase() {
+  const host = process.env.DB_HOST;
+  const user = process.env.DB_USER;
+  const password = process.env.DB_PASSWORD;
+  const port = process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 5432;
+  const dbName = process.env.DB_NAME || 'blog_db';
+
+  if (!host || !user || !password) {
+    console.error('❌ Variáveis DB_HOST, DB_USER e DB_PASSWORD são obrigatórias no .env');
     process.exit(1);
   }
 
-  const host = process.env.DB_HOST || 'localhost';
-  const user = process.env.DB_USER || 'root';
-  const password = process.env.DB_PASSWORD || '';
-  const port = Number(process.env.DB_PORT) || 3306;
+  const client = new Client({
+    host,
+    user,
+    password,
+    port,
+    database: 'postgres',
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  });
 
-  const conn = await mysql.createConnection({ host, user, password, port });
   try {
-    await conn.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\``);
-    console.log(`✅ Banco criado ou já existente: ${dbName}`);
+    await client.connect();
+    await client.query(`CREATE DATABASE ${dbName}`);
+    console.log(`✅ Banco '${dbName}' criado com sucesso (ou já existia).`);
   } catch (err: any) {
-    console.error('❌ Erro ao criar banco:', err.message || err);
-    process.exit(1);
+    if (err?.code === '42P04') {
+      console.log(`ℹ️ Banco '${dbName}' já existe.`);
+    } else {
+      console.error('❌ Erro ao criar banco:', err.message);
+      process.exitCode = 1;
+    }
   } finally {
-    await conn.end();
+    await client.end();
   }
 }
 
-main();
+createDatabase();

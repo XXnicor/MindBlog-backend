@@ -1,6 +1,7 @@
+require('dotenv').config();
+
 import express from 'express';
 import cors from 'cors';
-import 'dotenv/config';
 import './database/connection';
 import { ArticleRepository } from './repositories/ArticleRepository';
 import { UserRepository } from './repositories/UserRepository';
