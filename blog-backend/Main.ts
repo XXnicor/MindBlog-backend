@@ -12,7 +12,7 @@ import { CommentService } from './src/services/CommentService';
 import { ArticleController } from './src/controllers/ArticleController';
 import { UserController } from './src/controllers/UserController';
 import { CommentController } from './src/controllers/CommentController';
-import { AuthMiddleware } from './src/middlewares/AuthMiddleware';
+import { AuthMiddleware } from './src/middlewares/authMiddleware';
 import { createAuthRoutes } from './src/routes/authRoutes';
 import { createUserRoutes } from './src/routes/userRoutes';
 import { createArticleRoutes } from './src/routes/articleRoutes';
