@@ -1,25 +1,13 @@
-import mysql from 'mysql2';
-import { config } from '../config/env.config';
+import pool from '../config/database';
 
-const connection = mysql.createPool({
-  host: config.database.host,
-  port: config.database.port,
-  user: config.database.user,
-  password: config.database.password,
-  database: config.database.name,
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-});
-
-connection.getConnection((err, conn) => {
-  if (err) {
-    console.error('❌ Erro ao conectar no MySQL:', err.message);
-    process.exit(1); // Fail-fast: não inicia se DB inacessível
-  } else {
-    console.log('✅ Conectado ao MySQL com sucesso!');
-    conn.release();
+void (async () => {
+  try {
+    await pool.query('SELECT 1');
+    console.log('✅ Conectado ao PostgreSQL com sucesso!');
+  } catch (error) {
+    console.error('❌ Erro ao conectar no PostgreSQL:', error);
+    process.exit(1);
   }
-});
+})();
 
-export default connection.promise();
+export default pool;
