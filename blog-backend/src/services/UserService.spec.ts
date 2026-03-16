@@ -4,8 +4,29 @@ import { config } from '../config/env.config';
 import { UserRepository } from '../repositories/UserRepository';
 
 
-// Mock do UserRepository
-const userRepository = new UserRepository();
+// Mock do UserRepository para isolar testes sem depender do banco
+import bcrypt from 'bcrypt';
+
+const passwordHash = bcrypt.hashSync('123456', 10);
+
+const mockUser: any = {
+  id: 1,
+  nome: 'Test User',
+  email: 'test@example.com',
+  avatar: null,
+  bio: null,
+  getSenhaHash: () => passwordHash
+};
+
+const userRepository: any = {
+  findByEmail: async (email: string) => {
+    if (email === mockUser.email) return mockUser;
+    return null;
+  },
+  findById: async (id: number) => (id === mockUser.id ? mockUser : null),
+  // outros métodos usados em UserService podem ser adicionados se necessário
+};
+
 const userService = new UserService(userRepository);
 
 describe('UserService - Login com JWT', () => {

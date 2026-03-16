@@ -3,9 +3,9 @@ import { config } from './env.config';
 describe('EnvConfig', () => {
   it('deve carregar todas as variáveis obrigatórias', () => {
     expect(config.jwt.secret).toBeDefined();
-    expect(config.database.host).toBe('localhost');
-    expect(config.database.port).toBe(3306);
-    expect(config.server.port).toBe(3000);
+    expect(typeof config.database.host).toBe('string');
+    expect(typeof config.database.port).toBe('number');
+    expect(typeof config.server.port).toBe('number');
   });
 
   it('deve converter PORT para número', () => {

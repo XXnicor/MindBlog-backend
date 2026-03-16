@@ -5,12 +5,12 @@ describe('Article Model', () => {
   it('deve criar artigo válido', () => {
     const article = Article.create(
       'Meu Primeiro Artigo',
-      'Este é o conteúdo do artigo com mais de 10 caracteres.',
+      'Este é o conteúdo do artigo com mais de cento e cinquenta caracteres. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum in.',
       1
     );
 
     expect(article.titulo).toBe('Meu Primeiro Artigo');
-    expect(article.conteudo).toBe('Este é o conteúdo do artigo com mais de 10 caracteres.');
+    expect(article.conteudo).toBe('Este é o conteúdo do artigo com mais de cento e cinquenta caracteres. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum in.');
     expect(article.id_autor).toBe(1);
     expect(article.id).toBeNull(); // novo artigo
     expect(article.imagem_banner).toBeNull();
@@ -19,8 +19,9 @@ describe('Article Model', () => {
   it('deve criar artigo com banner', () => {
     const article = Article.create(
       'Artigo com Banner',
-      'Conteúdo suficiente aqui.',
+      'Conteúdo suficiente e longo o bastante para passar na validação de tamanho que exige pelo menos 100 caracteres. Lorem ipsum dolor sit amet, consectetur.',
       1,
+      'Dev',
       '/uploads/banner.jpg'
     );
 
@@ -36,12 +37,12 @@ describe('Article Model', () => {
   it('deve lançar erro para conteúdo curto', () => {
     expect(() => {
       Article.create('Título válido', 'Curto', 1);
-    }).toThrow('Conteúdo deve ter no mínimo 10 caracteres');
+    }).toThrow('Conteúdo deve ter no mínimo 100 caracteres');
   });
 
   it('deve lançar erro para authorId inválido', () => {
     expect(() => {
-      Article.create('Título', 'Conteúdo válido aqui.', 0);
+      Article.create('Título', 'Este é um conteúdo válido e longo o suficiente para passar na validação de conteúdo do modelo. Lorem ipsum dolor sit amet, consectetur adipiscing elit.', 0);
     }).toThrow('id_autor inválido');
   });
 
