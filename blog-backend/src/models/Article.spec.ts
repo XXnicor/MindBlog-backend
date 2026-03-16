@@ -51,6 +51,7 @@ describe('Article Model', () => {
       titulo: 'Artigo do Banco',
       conteudo: 'Conteúdo recuperado do banco de dados.',
       imagem_banner: '/uploads/banner.jpg',
+      categoria: 'Dev',
       id_autor: 5,
       data_publicacao: new Date('2025-01-01'),
       data_alteracao: new Date('2025-01-10')
@@ -69,6 +70,7 @@ describe('Article Model', () => {
       titulo: 'Teste',
       conteudo: 'Conteúdo teste aqui.',
       imagem_banner: null,
+      categoria: 'Dev',
       id_autor: 1,
       data_publicacao: new Date('2025-01-01')
     });

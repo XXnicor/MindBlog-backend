@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { UserService } from '../services/UserService';
-import { RegisterData, LoginCredentials, AuthRequest, UpdateProfileData } from '../types';
+import { RegisterData, LoginCredentials, UpdateProfileData } from '../types';
+import { AuthRequest } from '../types/AuthRequest';
 
 export class UserController {
   private userService: UserService;
@@ -106,9 +107,9 @@ export class UserController {
 
   public getProfile = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-      const userId = req.userId;
+      const userId = req.userId ? Number(req.userId) : NaN;
 
-      if (!userId) {
+      if (!Number.isInteger(userId) || userId <= 0) {
         res.status(401).json({
           message: 'Usuário não autenticado'
         });
@@ -136,9 +137,9 @@ export class UserController {
 
   public updateProfile = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-      const userId = req.userId;
+      const userId = req.userId ? Number(req.userId) : NaN;
 
-      if (!userId) {
+      if (!Number.isInteger(userId) || userId <= 0) {
         res.status(401).json({
           message: 'Usuário não autenticado'
         });
@@ -207,9 +208,9 @@ export class UserController {
 
   public getStats = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-      const userId = req.userId;
+      const userId = req.userId ? Number(req.userId) : NaN;
 
-      if (!userId) {
+      if (!Number.isInteger(userId) || userId <= 0) {
         res.status(401).json({
           message: 'Usuário não autenticado'
         });

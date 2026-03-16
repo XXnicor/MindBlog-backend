@@ -1,5 +1,3 @@
-import { Request } from 'express';
-
 export interface UserRow {
   id: number;
   nome: string;
@@ -52,11 +50,6 @@ export interface ArticleWithAuthor extends Article {
   autor_avatar?: string | null;
   autor_bio?: string | null;
   commentsCount?: number;
-}
-
-export interface AuthRequest extends Request {
-  userId?: number;
-  file?: Express.Multer.File;
 }
 
 export interface LoginCredentials {
@@ -150,3 +143,4 @@ export interface AuthResponse {
   user: UserDTO;
   token: string;
 }
+export { AuthRequest } from './AuthRequest';
