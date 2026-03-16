@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { ArticleService } from '../services/ArticleService';
-import { AuthRequest, CreateArticleData, UpdateArticleData } from '../types';
+import { CreateArticleData, UpdateArticleData } from '../types';
+import { AuthRequest } from '../types/AuthRequest';
 import multer from 'multer';
 import { config } from '../config/env.config';
 
@@ -115,9 +116,9 @@ export class ArticleController {
         imagem_banner: req.file ? req.file.filename : undefined
       };
       
-      const userId = req.userId;
+      const userId = req.userId ? Number(req.userId) : NaN;
 
-      if (!userId) {
+      if (!Number.isInteger(userId) || userId <= 0) {
         res.status(401).json({
           message: 'Usuário não autenticado'
         });
@@ -175,8 +176,8 @@ export class ArticleController {
   public update = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const id = parseInt(req.params.id);
-      const userId = req.userId;
-      
+      const userId = req.userId ? Number(req.userId) : NaN;
+
       let updateData: UpdateArticleData = {
         titulo: req.body.titulo,
         conteudo: req.body.conteudo,
@@ -193,7 +194,7 @@ export class ArticleController {
         return;
       }
 
-        if (!userId) {
+      if (!Number.isInteger(userId) || userId <= 0) {
         res.status(401).json({
           message: 'Usuário não autenticado'
         });
@@ -241,7 +242,7 @@ export class ArticleController {
   public delete = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const id = parseInt(req.params.id);
-      const userId = req.userId;
+      const userId = req.userId ? Number(req.userId) : NaN;
 
       if (isNaN(id)) {  
         res.status(400).json({
@@ -250,7 +251,7 @@ export class ArticleController {
         return;
       }
 
-      if (!userId) {
+      if (!Number.isInteger(userId) || userId <= 0) {
         res.status(401).json({
           message: 'Usuário não autenticado'
         });

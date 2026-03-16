@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { CommentService } from '../services/CommentService';
-import { AuthRequest, CreateCommentData } from '../types';
+import { CreateCommentData } from '../types';
+import { AuthRequest } from '../types/AuthRequest';
 
 export class CommentController {
   private commentService: CommentService;
@@ -46,7 +47,7 @@ export class CommentController {
   public create = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const articleId = parseInt(req.params.id);
-      const userId = req.userId;
+      const userId = req.userId ? Number(req.userId) : NaN;
       const commentData: CreateCommentData = req.body;
 
       if (isNaN(articleId)) {
@@ -56,7 +57,7 @@ export class CommentController {
         return;
       }
 
-      if (!userId) {
+      if (!Number.isInteger(userId) || userId <= 0) {
         res.status(401).json({
           message: 'Usuário não autenticado'
         });
@@ -107,7 +108,7 @@ export class CommentController {
   public delete = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const commentId = parseInt(req.params.id);
-      const userId = req.userId;
+      const userId = req.userId ? Number(req.userId) : NaN;
 
       if (isNaN(commentId)) {
         res.status(400).json({
@@ -116,7 +117,7 @@ export class CommentController {
         return;
       }
 
-      if (!userId) {
+      if (!Number.isInteger(userId) || userId <= 0) {
         res.status(401).json({
           message: 'Usuário não autenticado'
         });
