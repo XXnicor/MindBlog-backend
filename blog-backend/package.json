@@ -40,7 +40,7 @@
     "@types/jsonwebtoken": "^9.0.5",
     "@types/multer": "^1.4.11",
     "@types/node": "^20.10.6",
-    "@types/pg": "^8.11.10",
+    "@types/pg": "^8.18.0",
     "jest": "^30.2.0",
     "ts-jest": "^29.4.6",
     "ts-node-dev": "^2.0.0",
