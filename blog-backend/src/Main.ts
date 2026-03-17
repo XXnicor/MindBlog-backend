@@ -2,7 +2,7 @@ require('dotenv').config();
 
 import express from 'express';
 import cors, { CorsOptions } from 'cors';
-import './database/connection';
+import pool from './config/database';
 import { ArticleRepository } from './repositories/ArticleRepository';
 import { UserRepository } from './repositories/UserRepository';
 import { CommentRepository } from './repositories/CommentRepository';
@@ -21,6 +21,7 @@ import path from 'path';
 import { errorHandler } from './middlewares/errorHandler';
 
 const app = express();
+const PORT = process.env.PORT || 3000;
 
 const envOrigins = (process.env.FRONTEND_URL ?? '')
   .split(',')
@@ -46,8 +47,15 @@ const corsOptions: CorsOptions = {
 
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
-
 app.use(express.json());
+
+app.get('/health', (_req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
+app.get('/', (_req, res) => {
+  res.json({ message: 'Backend do Blog MindGroup rodando!' });
+});
 
 const articleRepository = new ArticleRepository();
 const userRepository = new UserRepository();
@@ -68,12 +76,6 @@ const userRoutes = createUserRoutes(userController, authMiddleware);
 const articleRoutes = createArticleRoutes(articleController, authMiddleware);
 const commentRoutes = createCommentRoutes(commentController, authMiddleware);
 
-const PORT = process.env.PORT ? Number(process.env.PORT) : 3000;
-
-app.get('/', (_req, res) => {
-  res.json({ message: 'Backend do Blog MindGroup rodando!' });
-});
-
 app.use('/api', authRoutes);
 app.use('/api', userRoutes);
 app.use('/api', articleRoutes);
@@ -88,6 +90,12 @@ app.use('/uploads', (req, res) => {
 
 app.use(errorHandler);
 
-app.listen(PORT, () => {
-  console.log(`🚀 Servidor rodando na porta ${PORT}`);
+app.listen(Number(PORT), '0.0.0.0', () => {
+  console.log(`[BOOT] HTTP server listening on 0.0.0.0:${PORT}`);
+  console.log('[BOOT] Render port binding is active');
+
+  void pool
+    .query('SELECT 1')
+    .then(() => console.log('[BOOT] PostgreSQL connection validated'))
+    .catch((error) => console.error('[BOOT] PostgreSQL connection failed:', error));
 });
