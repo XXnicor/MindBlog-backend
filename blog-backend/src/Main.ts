@@ -21,7 +21,7 @@ import path from 'path';
 import { errorHandler } from './middlewares/errorHandler';
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
 const envOrigins = (process.env.FRONTEND_URL ?? '')
   .split(',')
@@ -90,7 +90,7 @@ app.use('/uploads', (req, res) => {
 
 app.use(errorHandler);
 
-app.listen(Number(PORT), '0.0.0.0', () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`[BOOT] HTTP server listening on 0.0.0.0:${PORT}`);
   console.log('[BOOT] Render port binding is active');
 
