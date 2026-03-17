@@ -1,7 +1,7 @@
 require('dotenv').config();
 
 import express from 'express';
-import cors from 'cors';
+import cors, { CorsOptions } from 'cors';
 import './database/connection';
 import { ArticleRepository } from './repositories/ArticleRepository';
 import { UserRepository } from './repositories/UserRepository';
@@ -22,10 +22,29 @@ import { errorHandler } from './middlewares/errorHandler';
 
 const app = express();
 
-app.use(cors({
-  origin: 'http://localhost:3000',
+const envOrigins = (process.env.FRONTEND_URL ?? '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+const allowedOrigins = Array.from(new Set([
+  'http://localhost:3000',
+  ...envOrigins
+]));
+
+const corsOptions: CorsOptions = {
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+      return;
+    }
+
+    callback(new Error(`Origem não permitida pelo CORS: ${origin}`));
+  },
   credentials: true
-}));
+};
+
+app.use(cors(corsOptions));
 
 app.use(express.json());
 
