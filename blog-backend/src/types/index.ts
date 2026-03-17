@@ -114,6 +114,7 @@ export interface CreateCommentData {
 export interface PaginationParams {
   page: number;
   limit: number;
+  skip?: number;
   categoria?: string;
   search?: string;
 }
