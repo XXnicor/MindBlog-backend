@@ -21,7 +21,12 @@ import path from 'path';
 import { errorHandler } from './middlewares/errorHandler';
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const portEnv = process.env.PORT;
+const PORT: number = portEnv ? Number(portEnv) : 3001;
+
+if (Number.isNaN(PORT) || PORT <= 0) {
+  throw new Error('Invalid PORT');
+}
 
 const envOrigins = (process.env.FRONTEND_URL ?? '')
   .split(',')
@@ -90,12 +95,11 @@ app.use('/uploads', (req, res) => {
 
 app.use(errorHandler);
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`[BOOT] HTTP server listening on 0.0.0.0:${PORT}`);
-  console.log('[BOOT] Render port binding is active');
+void pool
+  .query('SELECT 1')
+  .then(() => console.log('[BOOT] PostgreSQL connection validated'))
+  .catch((error) => console.error('[BOOT] PostgreSQL connection failed:', error));
 
-  void pool
-    .query('SELECT 1')
-    .then(() => console.log('[BOOT] PostgreSQL connection validated'))
-    .catch((error) => console.error('[BOOT] PostgreSQL connection failed:', error));
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Servidor rodando na porta ${PORT}`);
 });

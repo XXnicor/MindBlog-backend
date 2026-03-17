@@ -14,7 +14,9 @@ export class ArticleController {
 
   private formatImageUrl(article: any): any {
     if (article.imagem_banner) {
-      const port = process.env.PORT || config.server.port;
+      const portEnv = process.env.PORT;
+      const portNum: number = portEnv ? Number(portEnv) : config.server.port;
+      const port = Number.isNaN(portNum) || portNum <= 0 ? config.server.port : portNum;
       article.imagem_banner_url = `http://localhost:${port}/uploads/${article.imagem_banner}`;
     } else {
       article.imagem_banner_url = null;
