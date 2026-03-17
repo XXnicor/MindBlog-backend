@@ -1,0 +1,12 @@
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Vary: Origin
+Access-Control-Allow-Credentials: true
+Content-Type: application/json; charset=utf-8
+Content-Length: 107
+ETag: W/"6b-fmXXoiexKcOkzmP9QfNA0foEkOw"
+Date: Tue, 17 Mar 2026 11:46:34 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+{"page":1,"limit":10,"offset":0,"data":[{"id":1,"title":"exemplo","createdAt":"2026-03-17T11:46:34.355Z"}]}
