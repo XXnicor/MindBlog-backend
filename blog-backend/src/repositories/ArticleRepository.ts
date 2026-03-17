@@ -101,8 +101,10 @@ export class ArticleRepository {
 
   public async findWithPagination(params: PaginationParams): Promise<PaginationResult<ArticleWithAuthor>> {
     try {
-      const { page, limit, categoria, search } = params;
-      const offset = (page - 1) * limit;
+      const { page, limit, skip, categoria, search } = params;
+      const offset = typeof skip === 'number' && Number.isFinite(skip) && skip >= 0
+        ? skip
+        : (page - 1) * limit;
 
       const whereConditions: string[] = [];
       const queryParams: unknown[] = [];

@@ -24,14 +24,20 @@ export class ArticleController {
 
   public listAll = async (req: Request, res: Response): Promise<void> => {
     try {
-      const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 9;
+      const pageParam = parseInt(req.query.page as string, 10);
+      const limitParam = parseInt(req.query.limit as string, 10);
+
+      const page = Number.isNaN(pageParam) || pageParam < 1 ? 1 : pageParam;
+      const limit = Number.isNaN(limitParam) || limitParam < 1 ? 9 : limitParam;
+      const skip = (page - 1) * limit;
+
       const categoria = req.query.categoria as string;
       const search = req.query.search as string;
 
       const result = await this.articleService.getArticlesWithPagination({
         page,
         limit,
+        skip,
         categoria,
         search
       });
@@ -50,9 +56,11 @@ export class ArticleController {
         }
       });
     } catch (error) {
+      console.error(error);
+
       res.status(500).json({
         message: 'Erro ao listar artigos',
-        error: error instanceof Error ? error.message : 'Erro desconhecido'
+        error: error instanceof Error ? error.message : String(error)
       });
     }
   };
