@@ -1,6 +1,10 @@
 node_modules/
 dist/
 .env
+.env
+*.log
+*.txt
+*.pid
 uploads/*
 !uploads/.gitkeep
 *.log
