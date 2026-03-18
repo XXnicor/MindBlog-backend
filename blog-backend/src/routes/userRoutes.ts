@@ -10,10 +10,11 @@ export function createUserRoutes(
   const router = Router();
 
   // Rotas protegidas
+  router.get('/users/my-articles', authMiddleware.authenticate, userController.getMyArticles);
   router.put('/users/profile', authMiddleware.authenticate, upload.single('avatar'), userController.updateProfile);
   router.get('/users/stats', authMiddleware.authenticate, userController.getStats);
-  
-  // Rotas públicas (ou para admin)
+
+  // Rotas públicas
   router.get('/users/:id', userController.getById);
   router.get('/users', userController.getAll);
   router.put('/users/:id', userController.update); // deveria ser protegida 
