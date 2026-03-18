@@ -24,6 +24,19 @@ export class ArticleController {
     return article;
   }
 
+  private formatAuthor(article: any): any {
+    return {
+      ...article,
+      autor: article.autor ?? {
+        id: article.id_autor,
+        nome: article.autor_nome,
+        email: article.autor_email,
+        avatar: article.autor_avatar,
+        bio: article.autor_bio
+      }
+    };
+  }
+
   public listAll = async (req: Request, res: Response): Promise<void> => {
     const startTime = Date.now();
     const route = '/api/articles';
@@ -46,7 +59,9 @@ export class ArticleController {
         search
       });
 
-      const articlesWithUrls = result.articles.map(article => this.formatImageUrl(article));
+      const articlesWithUrls = result.articles
+        .map(article => this.formatAuthor(article))
+        .map(article => this.formatImageUrl(article));
 
       const duration = Date.now() - startTime;
       console.log(`[${new Date().toISOString()}] ${route} - Success - page:${page} limit:${limit} total:${result.pagination.totalItems} duration:${duration}ms`);
@@ -104,10 +119,10 @@ export class ArticleController {
         return;
       }
 
-      const articleWithUrl = this.formatImageUrl(article);
+      const articleFormatted = this.formatImageUrl(this.formatAuthor(article));
 
       res.status(200).json({
-        data: articleWithUrl
+        data: articleFormatted
       });
     } catch (error) {
       const err = error as Error;
@@ -163,7 +178,7 @@ export class ArticleController {
       }
 
       const article = await this.articleService.createArticle(articleData, userId);
-      const articleWithUrl = this.formatImageUrl(article);
+      const articleWithUrl = this.formatImageUrl(this.formatAuthor(article));
 
       res.status(201).json({
         data: articleWithUrl
