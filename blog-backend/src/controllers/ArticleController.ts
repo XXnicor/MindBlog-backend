@@ -25,16 +25,18 @@ export class ArticleController {
   }
 
   public listAll = async (req: Request, res: Response): Promise<void> => {
+    const startTime = Date.now();
+    const route = '/api/articles';
+    
     try {
       const pageParam = parseInt(req.query.page as string, 10);
       const limitParam = parseInt(req.query.limit as string, 10);
-
-      const page = Number.isNaN(pageParam) || pageParam < 1 ? 1 : pageParam;
-      const limit = Number.isNaN(limitParam) || limitParam < 1 ? 9 : limitParam;
-      const skip = (page - 1) * limit;
-
       const categoria = req.query.categoria as string;
       const search = req.query.search as string;
+
+      const page = Number.isInteger(pageParam) && pageParam >= 1 ? pageParam : 1;
+      const limit = Number.isInteger(limitParam) && limitParam >= 1 ? Math.min(limitParam, 100) : 10;
+      const skip = (page - 1) * limit;
 
       const result = await this.articleService.getArticlesWithPagination({
         page,
@@ -45,6 +47,9 @@ export class ArticleController {
       });
 
       const articlesWithUrls = result.articles.map(article => this.formatImageUrl(article));
+
+      const duration = Date.now() - startTime;
+      console.log(`[${new Date().toISOString()}] ${route} - Success - page:${page} limit:${limit} total:${result.pagination.totalItems} duration:${duration}ms`);
 
       res.status(200).json({
         articles: articlesWithUrls,
@@ -58,11 +63,23 @@ export class ArticleController {
         }
       });
     } catch (error) {
-      console.error(error);
+      const duration = Date.now() - startTime;
+      const err = error as Error;
+      
+      console.error(`[${new Date().toISOString()}] ${route} - Error - duration:${duration}ms`, {
+        message: err.message,
+        stack: err.stack,
+        query: {
+          page: req.query.page,
+          limit: req.query.limit,
+          categoria: req.query.categoria,
+          search: req.query.search
+        }
+      });
 
       res.status(500).json({
-        message: 'Erro ao listar artigos',
-        error: error instanceof Error ? error.message : String(error)
+        error: 'internal_server_error',
+        message: 'Erro ao listar artigos'
       });
     }
   };

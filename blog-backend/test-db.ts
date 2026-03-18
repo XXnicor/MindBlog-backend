@@ -26,8 +26,16 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false },
 });
 
-pool.on('error', (error: Error) => {
-  console.error('Erro inesperado no pool PostgreSQL:', error);
-});
+async function main(): Promise<void> {
+  try {
+    const result = await pool.query('SELECT NOW()');
+    console.log('DB OK:', result.rows);
+  } catch (error) {
+    console.error('DB ERROR:', error);
+    process.exitCode = 1;
+  } finally {
+    await pool.end();
+  }
+}
 
-export default pool;
+void main();

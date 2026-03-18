@@ -108,21 +108,19 @@ export class ArticleRepository {
 
       const whereConditions: string[] = [];
       const queryParams: unknown[] = [];
+      let paramIndex = 1;
 
       if (categoria) {
         queryParams.push(categoria);
-        whereConditions.push(`a.categoria = $${queryParams.length}`);
+        whereConditions.push(`a.categoria = $${paramIndex++}`);
       }
 
       if (search) {
-        const searchPattern = `%${search}%`;
+        const searchPattern = `%${String(search).trim()}%`;
         queryParams.push(searchPattern);
-        const p1 = `$${queryParams.length}`;
+        whereConditions.push(`(LOWER(a.titulo) LIKE $${paramIndex++} OR LOWER(a.conteudo) LIKE $${paramIndex++} OR LOWER(a.resumo) LIKE $${paramIndex++})`);
         queryParams.push(searchPattern);
-        const p2 = `$${queryParams.length}`;
         queryParams.push(searchPattern);
-        const p3 = `$${queryParams.length}`;
-        whereConditions.push(`(a.titulo LIKE ${p1} OR a.conteudo LIKE ${p2} OR a.resumo LIKE ${p3})`);
       }
 
       const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
@@ -133,9 +131,8 @@ export class ArticleRepository {
       );
       const totalItems = Number(countResult.rows[0]?.total ?? 0);
 
-      const paginatedParams = [...queryParams, limit, offset];
-      const limitPlaceholder = `$${queryParams.length + 1}`;
-      const offsetPlaceholder = `$${queryParams.length + 2}`;
+      queryParams.push(limit);
+      queryParams.push(offset);
 
       const result = await connection.query<ArticleWithAuthor>(
         `SELECT 
@@ -146,11 +143,11 @@ export class ArticleRepository {
           u.bio as autor_bio,
           (SELECT COUNT(*) FROM comments WHERE id_article = a.id) as "commentsCount"
         FROM articles a
-        INNER JOIN users u ON a.id_autor = u.id
+        LEFT JOIN users u ON a.id_autor = u.id
         ${whereClause}
-        ORDER BY a.data_publicacao DESC
-        LIMIT ${limitPlaceholder} OFFSET ${offsetPlaceholder}`,
-        paginatedParams
+        ORDER BY a.data_publicacao DESC NULLS LAST
+        LIMIT $${queryParams.length - 1} OFFSET $${queryParams.length}`,
+        queryParams
       );
 
       const totalPages = Math.ceil(totalItems / limit) || 1;
@@ -165,7 +162,13 @@ export class ArticleRepository {
         },
       };
     } catch (error) {
-      throw new Error(`Erro ao buscar artigos com paginação: ${error}`);
+      const err = error as Error;
+      console.error('[ArticleRepository] Erro em findWithPagination:', {
+        message: err.message,
+        stack: err.stack,
+        params
+      });
+      throw new Error(`Erro ao buscar artigos com paginação: ${err.message}`);
     }
   }
 
