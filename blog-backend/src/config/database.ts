@@ -11,9 +11,7 @@ function getConnectionString(): string {
   const hasLibpqCompat = /[?&]uselibpqcompat=/.test(databaseUrl);
 
   let url = databaseUrl;
-  if (!hasLibpqCompat) {
-    url += (url.includes('?') ? '&' : '?') + 'uselibpqcompat=true';
-  }
+  
   if (!hasSslMode) {
     url += (url.includes('?') ? '&' : '?') + 'sslmode=require';
   }
