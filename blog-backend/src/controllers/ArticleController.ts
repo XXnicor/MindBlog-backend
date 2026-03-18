@@ -78,8 +78,8 @@ export class ArticleController {
       });
 
       res.status(500).json({
-        error: 'internal_server_error',
-        message: 'Erro ao listar artigos'
+      error: 'internal_server_error',
+      message: err.message
       });
     }
   };
