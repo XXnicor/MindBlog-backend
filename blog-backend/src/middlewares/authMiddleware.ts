@@ -46,7 +46,10 @@ export class AuthMiddleware {
         return;
       }
 
-      (req as AuthRequest).userId = String(userId);
+      (req as AuthRequest).user = {
+        id: Number(userId)
+      };
+
       next();
     } catch (error) {
       if (error instanceof jwt.JsonWebTokenError) {

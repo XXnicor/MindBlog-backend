@@ -110,8 +110,11 @@ export class ArticleController {
         data: articleWithUrl
       });
     } catch (error) {
+      const err = error as Error;
+      console.error(`[ArticleController.getById] Erro:`, { message: err.message, stack: err.stack, id: req.params.id });
       res.status(500).json({
-        message: 'Erro ao buscar artigo'
+        error: 'internal_server_error',
+        message: process.env.NODE_ENV === 'development' ? err.message : 'Erro ao buscar artigo'
       });
     }
   };
@@ -143,9 +146,9 @@ export class ArticleController {
         imagem_banner: req.file ? req.file.filename : undefined
       };
       
-      const userId = req.userId ? Number(req.userId) : NaN;
+      const userId = req.user?.id;
 
-      if (!Number.isInteger(userId) || userId <= 0) {
+      if (!userId || !Number.isInteger(userId) || userId <= 0) {
         res.status(401).json({
           message: 'Usuário não autenticado'
         });
@@ -189,9 +192,11 @@ export class ArticleController {
         }
       }
 
-        res.status(500).json({
-        message: 'Erro ao criar artigo',
-        error: error instanceof Error ? error.message : 'Erro desconhecido'
+      const err = error as Error;
+      console.error(`[ArticleController.create] Erro:`, { message: err.message, stack: err.stack });
+      res.status(500).json({
+        error: 'internal_server_error',
+        message: process.env.NODE_ENV === 'development' ? err.message : 'Erro ao criar artigo'
       });
     }
   };
@@ -203,7 +208,7 @@ export class ArticleController {
   public update = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const id = parseInt(req.params.id);
-      const userId = req.userId ? Number(req.userId) : NaN;
+      const userId = req.user?.id;
 
       let updateData: UpdateArticleData = {
         titulo: req.body.titulo,
@@ -221,7 +226,7 @@ export class ArticleController {
         return;
       }
 
-      if (!Number.isInteger(userId) || userId <= 0) {
+      if (!userId || !Number.isInteger(userId) || userId <= 0) {
         res.status(401).json({
           message: 'Usuário não autenticado'
         });
@@ -260,8 +265,11 @@ export class ArticleController {
         }
       }
 
-        res.status(500).json({
-        message: 'Erro ao atualizar artigo'
+      const err = error as Error;
+      console.error(`[ArticleController.update] Erro:`, { message: err.message, stack: err.stack, id: req.params.id });
+      res.status(500).json({
+        error: 'internal_server_error',
+        message: process.env.NODE_ENV === 'development' ? err.message : 'Erro ao atualizar artigo'
       });
     }
   };
@@ -269,16 +277,16 @@ export class ArticleController {
   public delete = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const id = parseInt(req.params.id);
-      const userId = req.userId ? Number(req.userId) : NaN;
+      const userId = req.user?.id;
 
-      if (isNaN(id)) {  
+      if (isNaN(id)) {
         res.status(400).json({
           message: 'ID inválido'
         });
         return;
       }
 
-      if (!Number.isInteger(userId) || userId <= 0) {
+      if (!userId || !Number.isInteger(userId) || userId <= 0) {
         res.status(401).json({
           message: 'Usuário não autenticado'
         });
@@ -312,8 +320,11 @@ export class ArticleController {
           return;
         }
       }
-        res.status(500).json({      
-        message: 'Erro ao deletar artigo'
+      const err = error as Error;
+      console.error(`[ArticleController.delete] Erro:`, { message: err.message, stack: err.stack, id: req.params.id });
+      res.status(500).json({
+        error: 'internal_server_error',
+        message: process.env.NODE_ENV === 'development' ? err.message : 'Erro ao deletar artigo'
       });
     }
   };

@@ -107,9 +107,9 @@ export class UserController {
 
   public getProfile = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-      const userId = req.userId ? Number(req.userId) : NaN;
+      const userId = req.user?.id;
 
-      if (!Number.isInteger(userId) || userId <= 0) {
+      if (!userId || !Number.isInteger(userId) || userId <= 0) {
         res.status(401).json({
           message: 'Usuário não autenticado'
         });
@@ -137,9 +137,9 @@ export class UserController {
 
   public updateProfile = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-      const userId = req.userId ? Number(req.userId) : NaN;
+      const userId = req.user?.id;
 
-      if (!Number.isInteger(userId) || userId <= 0) {
+      if (!userId || !Number.isInteger(userId) || userId <= 0) {
         res.status(401).json({
           message: 'Usuário não autenticado'
         });
@@ -208,9 +208,9 @@ export class UserController {
 
   public getStats = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-      const userId = req.userId ? Number(req.userId) : NaN;
+      const userId = req.user?.id;
 
-      if (!Number.isInteger(userId) || userId <= 0) {
+      if (!userId || !Number.isInteger(userId) || userId <= 0) {
         res.status(401).json({
           message: 'Usuário não autenticado'
         });

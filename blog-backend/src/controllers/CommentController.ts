@@ -47,7 +47,7 @@ export class CommentController {
   public create = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const articleId = parseInt(req.params.id);
-      const userId = req.userId ? Number(req.userId) : NaN;
+      const userId = req.user?.id;
       const commentData: CreateCommentData = req.body;
 
       if (isNaN(articleId)) {
@@ -57,7 +57,7 @@ export class CommentController {
         return;
       }
 
-      if (!Number.isInteger(userId) || userId <= 0) {
+      if (!userId || !Number.isInteger(userId) || userId <= 0) {
         res.status(401).json({
           message: 'Usuário não autenticado'
         });
@@ -108,7 +108,7 @@ export class CommentController {
   public delete = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const commentId = parseInt(req.params.id);
-      const userId = req.userId ? Number(req.userId) : NaN;
+      const userId = req.user?.id;
 
       if (isNaN(commentId)) {
         res.status(400).json({
@@ -117,7 +117,7 @@ export class CommentController {
         return;
       }
 
-      if (!Number.isInteger(userId) || userId <= 0) {
+      if (!userId || !Number.isInteger(userId) || userId <= 0) {
         res.status(401).json({
           message: 'Usuário não autenticado'
         });
