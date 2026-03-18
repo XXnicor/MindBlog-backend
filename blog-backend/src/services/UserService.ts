@@ -1,7 +1,7 @@
 
 import bcrypt from 'bcrypt';
 import { UserRepository } from '../repositories/UserRepository';
-import { User, UserDTO, RegisterData, LoginCredentials, AuthResponse, UpdateProfileData, UserStats} from '../types';
+import { User, UserDTO, RegisterData, LoginCredentials, AuthResponse, UpdateProfileData, UserStats, Article } from '../types';
 import { sign} from 'jsonwebtoken';
 import { config } from '../config/env.config';
 
@@ -11,6 +11,10 @@ export class UserService {
 
   constructor(userRepository: UserRepository) {
     this.userRepository = userRepository;
+  }
+
+  public async getArticlesByUser(userId: number): Promise<Article[]> {
+    return this.userRepository.findArticlesByAuthor(userId);
   }
 
   public async register(registerData: RegisterData): Promise<AuthResponse> {

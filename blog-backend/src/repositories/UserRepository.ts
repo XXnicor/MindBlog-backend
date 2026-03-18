@@ -1,5 +1,5 @@
 import connection from '../database/database';
-import { RegisterData, UserRow, UpdateProfileData, UserStats } from '../types';
+import { RegisterData, UserRow, UpdateProfileData, UserStats, Article } from '../types';
 import { User } from '../models/User';
 
 export class UserRepository {
@@ -198,6 +198,26 @@ export class UserRepository {
       return (result.rowCount ?? 0) > 0;
     } catch (error) {
       throw new Error(`Erro ao deletar usuário: ${error}`);
+    }
+  }
+
+  public async findArticlesByAuthor(authorId: number): Promise<Article[]> {
+    try {
+      const result = await connection.query<Article>(
+        `SELECT
+           a.*,
+           u.nome as autor_nome,
+           u.email as autor_email,
+           u.avatar as autor_avatar
+         FROM articles a
+         INNER JOIN users u ON a.id_autor = u.id
+         WHERE a.id_autor = $1
+         ORDER BY a.data_publicacao DESC`,
+        [authorId]
+      );
+      return result.rows;
+    } catch (error) {
+      throw new Error(`Erro ao buscar artigos do usuário: ${error}`);
     }
   }
 }

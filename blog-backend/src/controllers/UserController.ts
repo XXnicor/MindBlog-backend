@@ -229,6 +229,49 @@ export class UserController {
     }
   };
 
+  public getMyArticles = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const userId = (req as AuthRequest).user?.id;
+
+      if (!userId || !Number.isInteger(userId) || userId <= 0) {
+        res.status(401).json({ message: 'Usuário não autenticado' });
+        return;
+      }
+
+      const pageParam = parseInt(req.query.page as string, 10);
+      const limitParam = parseInt(req.query.limit as string, 10);
+
+      const page = Number.isInteger(pageParam) && pageParam >= 1 ? pageParam : 1;
+      const limit = Number.isInteger(limitParam) && limitParam >= 1 ? Math.min(limitParam, 100) : 10;
+
+      const articles = await this.userService.getArticlesByUser(userId);
+
+      const start = (page - 1) * limit;
+      const paginated = articles.slice(start, start + limit);
+      const totalItems = articles.length;
+      const totalPages = Math.ceil(totalItems / limit) || 1;
+
+      res.status(200).json({
+        articles: paginated,
+        pagination: {
+          currentPage: page,
+          totalPages,
+          totalItems,
+          itemsPerPage: limit,
+          hasNextPage: page < totalPages,
+          hasPreviousPage: page > 1
+        }
+      });
+    } catch (error) {
+      const err = error as Error;
+      console.error('[UserController.getMyArticles] Erro:', err.message);
+      res.status(500).json({
+        error: 'internal_server_error',
+        message: 'Erro ao buscar artigos do usuário'
+      });
+    }
+  };
+
   public getById = async (req: Request, res: Response): Promise<void> => {
     try {
       const id = parseInt(req.params.id);
