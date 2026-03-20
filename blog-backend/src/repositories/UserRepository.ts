@@ -1,5 +1,5 @@
 import connection from '../database/database';
-import { RegisterData, UserRow, UpdateProfileData, UserStats, Article } from '../types';
+import { RegisterData, UserRow, UpdateProfileData, UserStats, ArticleWithAuthor } from '../types';
 import { User } from '../models/User';
 
 export class UserRepository {
@@ -27,7 +27,10 @@ export class UserRepository {
 
   public async findByEmail(email: string): Promise<User | null> {
     try {
-      const result = await connection.query<UserRow>('SELECT * FROM users WHERE email = $1', [email]);
+      const result = await connection.query<UserRow>(
+        'SELECT id, nome, email, senha, avatar, bio, created_at, updated_at FROM users WHERE email = $1',
+        [email]
+      );
 
       if (result.rows.length === 0) {
         return null;
@@ -41,7 +44,10 @@ export class UserRepository {
 
   public async findById(id: number): Promise<User | null> {
     try {
-      const result = await connection.query<UserRow>('SELECT * FROM users WHERE id = $1', [id]);
+      const result = await connection.query<UserRow>(
+        'SELECT id, nome, email, senha, avatar, bio, created_at, updated_at FROM users WHERE id = $1',
+        [id]
+      );
 
       if (result.rows.length === 0) {
         return null;
@@ -201,9 +207,9 @@ export class UserRepository {
     }
   }
 
-  public async findArticlesByAuthor(authorId: number): Promise<Article[]> {
+  public async findArticlesByAuthor(authorId: number): Promise<ArticleWithAuthor[]> {
     try {
-      const result = await connection.query<Article>(
+      const result = await connection.query<ArticleWithAuthor>(
         `SELECT
            a.*,
            u.nome as autor_nome,

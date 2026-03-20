@@ -3,6 +3,7 @@ import { UserService } from '../services/UserService';
 import { RegisterData, LoginCredentials, UpdateProfileData } from '../types';
 import { AuthRequest } from '../types/AuthRequest';
 import { formatArticlesList } from '../utils/articleFormatter';
+import { getBaseUrl } from '../utils/urlUtils';
 
 export class UserController {
   private userService: UserService;
@@ -150,8 +151,10 @@ export class UserController {
       // Gera a URL completa do avatar se houver upload
       let avatarUrl: string | undefined = undefined;
       if (req.file) {
-        const baseUrl = `${req.protocol}://${req.get('host')}`;
-        avatarUrl = `${baseUrl}/uploads/${req.file.filename}`;
+        const baseUrl = getBaseUrl();
+        if (baseUrl) {
+          avatarUrl = `${baseUrl}/uploads/${req.file.filename}`;
+        }
       }
 
       const profileData: UpdateProfileData = {

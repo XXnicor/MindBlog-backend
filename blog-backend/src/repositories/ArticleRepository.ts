@@ -39,7 +39,10 @@ export class ArticleRepository {
   // Used for internal checks (existence/ownership), without author join.
   public async findByIdRaw(id: number): Promise<Article | null> {
     try {
-      const result = await connection.query<Article>('SELECT * FROM articles WHERE id = $1', [id]);
+      const result = await connection.query<Article>(
+        'SELECT id, titulo, conteudo, resumo, categoria, tags, id_autor, imagem_banner, views, likes, data_publicacao, data_alteracao FROM articles WHERE id = $1',
+        [id]
+      );
 
       if (result.rows.length === 0) {
         return null;

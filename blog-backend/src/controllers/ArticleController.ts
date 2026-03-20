@@ -3,6 +3,7 @@ import { ArticleService } from '../services/ArticleService';
 import { CreateArticleData, UpdateArticleData } from '../types';
 import { AuthRequest } from '../types/AuthRequest';
 import { formatArticleAutor, formatArticlesList } from '../utils/articleFormatter';
+import { getBaseUrl } from '../utils/urlUtils';
 import multer from 'multer';
 
 export class ArticleController {
@@ -14,11 +15,8 @@ export class ArticleController {
 
   private formatImageUrl(article: any): any {
     if (article.imagem_banner) {
-      const baseUrl = process.env.NODE_ENV === 'production'
-        ? `https://${process.env.RENDER_SERVICE_NAME}.onrender.com`
-        : `http://localhost:${process.env.PORT ?? 3001}`;
-
-      article.imagem_banner_url = `${baseUrl}/uploads/${article.imagem_banner}`;
+      const baseUrl = getBaseUrl();
+      article.imagem_banner_url = baseUrl ? `${baseUrl}/uploads/${article.imagem_banner}` : null;
     } else {
       article.imagem_banner_url = null;
     }

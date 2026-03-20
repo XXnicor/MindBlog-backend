@@ -17,18 +17,6 @@ export interface UserDTO {
   bio?: string | null;
 }
 
-export interface User {
-  id: number | null;
-  nome: string;
-  email: string;
-  senha?: string;
-  avatar?: string | null;
-  bio?: string | null;
-  created_at?: Date;
-  updated_at?: Date;
-  getSenhaHash?: () => string;
-}
-
 export interface Article {
   id: number;
   titulo: string;
@@ -144,4 +132,6 @@ export interface AuthResponse {
   user: UserDTO;
   token: string;
 }
+
 export { AuthRequest } from './AuthRequest';
+export { User } from '../models/User';

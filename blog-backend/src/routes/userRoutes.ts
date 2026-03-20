@@ -17,8 +17,8 @@ export function createUserRoutes(
   // Rotas públicas
   router.get('/users/:id', userController.getById);
   router.get('/users', userController.getAll);
-  router.put('/users/:id', userController.update); // deveria ser protegida 
-  router.delete('/users/:id', userController.delete);// deveria ser protegida
+  router.put('/users/:id', authMiddleware.authenticate, userController.update);
+  router.delete('/users/:id', authMiddleware.authenticate, userController.delete);
 
   return router;
 }

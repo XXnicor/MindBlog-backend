@@ -17,7 +17,10 @@ export class CommentRepository {
 
   public async findById(id: number): Promise<Comment | null> {
     try {
-      const result = await connection.query<Comment>('SELECT * FROM comments WHERE id = $1', [id]);
+      const result = await connection.query<Comment>(
+        'SELECT id, text, id_article, id_author, likes, created_at, updated_at FROM comments WHERE id = $1',
+        [id]
+      );
 
       if (result.rows.length === 0) {
         return null;

@@ -1,7 +1,7 @@
 
 import bcrypt from 'bcrypt';
 import { UserRepository } from '../repositories/UserRepository';
-import { User, UserDTO, RegisterData, LoginCredentials, AuthResponse, UpdateProfileData, UserStats, Article } from '../types';
+import { User, UserDTO, RegisterData, LoginCredentials, AuthResponse, UpdateProfileData, UserStats, ArticleWithAuthor } from '../types';
 import { sign} from 'jsonwebtoken';
 import { config } from '../config/env.config';
 
@@ -13,7 +13,7 @@ export class UserService {
     this.userRepository = userRepository;
   }
 
-  public async getArticlesByUser(userId: number): Promise<Article[]> {
+  public async getArticlesByUser(userId: number): Promise<ArticleWithAuthor[]> {
     return this.userRepository.findArticlesByAuthor(userId);
   }
 
