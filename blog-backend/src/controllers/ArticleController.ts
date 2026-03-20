@@ -94,7 +94,7 @@ export class ArticleController {
 
       res.status(500).json({
       error: 'internal_server_error',
-      message: err.message
+      message: process.env.NODE_ENV === 'development' ? err.message : 'Erro ao listar artigos'
       });
     }
   };

@@ -251,8 +251,19 @@ export class UserController {
       const totalItems = articles.length;
       const totalPages = Math.ceil(totalItems / limit) || 1;
 
+      const formatted = paginated.map((article: any) => ({
+        ...article,
+        autor: {
+          id:     article.id_autor      ?? null,
+          nome:   article.autor_nome    ?? null,
+          email:  article.autor_email   ?? null,
+          avatar: article.autor_avatar  ?? null,
+          bio:    article.autor_bio     ?? null
+        }
+      }));
+
       res.status(200).json({
-        articles: paginated,
+        articles: formatted,
         pagination: {
           currentPage: page,
           totalPages,

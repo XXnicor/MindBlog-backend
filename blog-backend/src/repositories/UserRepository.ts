@@ -68,11 +68,11 @@ export class UserRepository {
 
   public async findAll(): Promise<User[]> {
     try {
-      const result = await connection.query<User>(
+      const result = await connection.query<UserRow>(
         'SELECT id, nome, email, avatar, bio, created_at, updated_at FROM users'
       );
 
-      return result.rows;
+      return result.rows.map(row => this.toDomain(row));
     } catch (error) {
       throw new Error(`Erro ao listar usuários: ${error}`);
     }
@@ -208,7 +208,8 @@ export class UserRepository {
            a.*,
            u.nome as autor_nome,
            u.email as autor_email,
-           u.avatar as autor_avatar
+           u.avatar as autor_avatar,
+           u.bio as autor_bio
          FROM articles a
          INNER JOIN users u ON a.id_autor = u.id
          WHERE a.id_autor = $1

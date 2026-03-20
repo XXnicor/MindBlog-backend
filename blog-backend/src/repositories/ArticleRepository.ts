@@ -163,19 +163,6 @@ export class ArticleRepository {
     }
   }
 
-  public async findByAuthor(authorId: number): Promise<Article[]> {
-    try {
-      const result = await connection.query<Article>(
-        'SELECT * FROM articles WHERE id_autor = $1 ORDER BY data_publicacao DESC',
-        [authorId]
-      );
-
-      return result.rows;
-    } catch (error) {
-      throw new Error(`Erro ao buscar artigos por autor: ${error}`);
-    }
-  }
-
   public async update(id: number, articleData: UpdateArticleData): Promise<boolean> {
     try {
       const fields: string[] = [];

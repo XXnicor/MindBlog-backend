@@ -62,24 +62,8 @@ export class ArticleService {
     }
   }
 
-  public async getAllArticles(): Promise<ArticleWithAuthor[]> {
-    try {
-      return await this.articleRepository.findAllWithAuthors();
-    } catch (error) {
-      throw new Error('Erro ao listar artigos');
-    }
-  }
-
   public async getArticlesWithPagination(params: PaginationParams): Promise<PaginationResult<ArticleWithAuthor>> {
     return this.articleRepository.findWithPagination(params);
-  }
-
-  public async getArticlesByAuthor(authorId: number): Promise<Article[]> {
-    try {
-      return await this.articleRepository.findByAuthor(authorId);
-    } catch (error) {
-      throw new Error('Erro ao buscar artigos do autor');
-    }
   }
 
   public async updateArticle(id: number, userId: number, updateData: UpdateArticleData): Promise<Article> {

@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 require("dotenv/config");
-require("./src/database/connection");
+require("./src/config/database");
 const env_config_1 = require("./src/config/env.config");
 const ArticleRepository_1 = require("./src/repositories/ArticleRepository");
 const UserRepository_1 = require("./src/repositories/UserRepository");

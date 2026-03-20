@@ -47,7 +47,7 @@ const corsOptions: CorsOptions = {
 
     const isAllowed =
       allowedOrigins.includes(origin) ||
-      /^https:\/\/.*\.vercel\.app$/.test(origin);
+      /^https:\/\/mindblog.*\.vercel\.app$/.test(origin);
 
     if (isAllowed) {
       callback(null, true);
