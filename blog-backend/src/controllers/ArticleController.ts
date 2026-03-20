@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { ArticleService } from '../services/ArticleService';
 import { CreateArticleData, UpdateArticleData } from '../types';
 import { AuthRequest } from '../types/AuthRequest';
+import { formatArticleAutor, formatArticlesList } from '../utils/articleFormatter';
 import multer from 'multer';
 
 export class ArticleController {
@@ -22,19 +23,6 @@ export class ArticleController {
       article.imagem_banner_url = null;
     }
     return article;
-  }
-
-  private formatAuthor(article: any): any {
-    return {
-      ...article,
-      autor: article.autor ?? {
-        id: article.id_autor,
-        nome: article.autor_nome,
-        email: article.autor_email,
-        avatar: article.autor_avatar,
-        bio: article.autor_bio
-      }
-    };
   }
 
   public listAll = async (req: Request, res: Response): Promise<void> => {
@@ -59,9 +47,8 @@ export class ArticleController {
         search
       });
 
-      const articlesWithUrls = result.articles
-        .map(article => this.formatAuthor(article))
-        .map(article => this.formatImageUrl(article));
+      const formattedArticles = formatArticlesList(result.articles);
+      const articlesWithUrls = formattedArticles.map(article => this.formatImageUrl(article));
 
       const duration = Date.now() - startTime;
       console.log(`[${new Date().toISOString()}] ${route} - Success - page:${page} limit:${limit} total:${result.pagination.totalItems} duration:${duration}ms`);
@@ -115,7 +102,8 @@ export class ArticleController {
         return;
       }
 
-      const articleFormatted = this.formatImageUrl(this.formatAuthor(article));
+      const formatted = formatArticleAutor(article);
+      const articleFormatted = this.formatImageUrl(formatted);
 
       res.status(200).json({ data: articleFormatted });
     } catch (error) {
@@ -172,7 +160,8 @@ export class ArticleController {
       }
 
       const article = await this.articleService.createArticle(articleData, userId);
-      const articleWithUrl = this.formatImageUrl(this.formatAuthor(article));
+      const formatted = formatArticleAutor(article);
+      const articleWithUrl = this.formatImageUrl(formatted);
 
       res.status(201).json({
         data: articleWithUrl
@@ -243,8 +232,8 @@ export class ArticleController {
       }
 
       const updatedArticle = await this.articleService.updateArticle(id, userId, updateData);
-      const articleWithAuthor = this.formatAuthor(updatedArticle);
-      const articleWithUrl = this.formatImageUrl(articleWithAuthor);
+      const formatted = formatArticleAutor(updatedArticle);
+      const articleWithUrl = this.formatImageUrl(formatted);
 
       res.status(200).json({
         data: articleWithUrl

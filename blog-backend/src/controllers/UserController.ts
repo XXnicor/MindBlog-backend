@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { UserService } from '../services/UserService';
 import { RegisterData, LoginCredentials, UpdateProfileData } from '../types';
 import { AuthRequest } from '../types/AuthRequest';
+import { formatArticlesList } from '../utils/articleFormatter';
 
 export class UserController {
   private userService: UserService;
@@ -251,16 +252,7 @@ export class UserController {
       const totalItems = articles.length;
       const totalPages = Math.ceil(totalItems / limit) || 1;
 
-      const formatted = paginated.map((article: any) => ({
-        ...article,
-        autor: {
-          id:     article.id_autor      ?? null,
-          nome:   article.autor_nome    ?? null,
-          email:  article.autor_email   ?? null,
-          avatar: article.autor_avatar  ?? null,
-          bio:    article.autor_bio     ?? null
-        }
-      }));
+      const formatted = formatArticlesList(paginated);
 
       res.status(200).json({
         articles: formatted,
