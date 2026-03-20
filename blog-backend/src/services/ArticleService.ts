@@ -84,7 +84,7 @@ export class ArticleService {
 
   public async updateArticle(id: number, userId: number, updateData: UpdateArticleData): Promise<Article> {
     try {
-      const article = await this.articleRepository.findById(id);
+      const article = await this.articleRepository.findByIdRaw(id);
       if (!article) {
         throw new Error('Artigo não encontrado');
       }
@@ -138,7 +138,7 @@ export class ArticleService {
 
   public async deleteArticle(id: number, userId: number): Promise<boolean> {
     try {
-      const article = await this.articleRepository.findById(id);
+      const article = await this.articleRepository.findByIdRaw(id);
 
       if (!article) {
         throw new Error('Artigo não encontrado');

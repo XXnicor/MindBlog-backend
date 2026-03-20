@@ -2,6 +2,14 @@ import connection from '../database/database';
 import { Article, ArticleWithAuthor, CreateArticleData, UpdateArticleData, PaginationParams, PaginationResult } from '../types';
 
 export class ArticleRepository {
+  private static readonly AUTHOR_SELECT_FIELDS = `
+    u.id as autor_id,
+    u.nome as autor_nome,
+    u.email as autor_email,
+    u.avatar as autor_avatar,
+    u.bio as autor_bio
+  `;
+
   public async create(articleData: CreateArticleData, authorId: number): Promise<number> {
     try {
       const tagsJson = articleData.tags ? JSON.stringify(articleData.tags) : null;
@@ -28,7 +36,8 @@ export class ArticleRepository {
     }
   }
 
-  public async findById(id: number): Promise<Article | null> {
+  // Used for internal checks (existence/ownership), without author join.
+  public async findByIdRaw(id: number): Promise<Article | null> {
     try {
       const result = await connection.query<Article>('SELECT * FROM articles WHERE id = $1', [id]);
 
@@ -47,10 +56,7 @@ export class ArticleRepository {
       const result = await connection.query<ArticleWithAuthor>(
         `SELECT 
           a.*,
-          u.nome as autor_nome,
-          u.email as autor_email,
-          u.avatar as autor_avatar,
-          u.bio as autor_bio,
+          ${ArticleRepository.AUTHOR_SELECT_FIELDS},
           (SELECT COUNT(*) FROM comments WHERE id_article = a.id) as "commentsCount"
         FROM articles a
         INNER JOIN users u ON a.id_autor = u.id
@@ -68,25 +74,13 @@ export class ArticleRepository {
     }
   }
 
-  public async findAll(): Promise<Article[]> {
-    try {
-      const result = await connection.query<Article>('SELECT * FROM articles ORDER BY data_publicacao DESC');
-
-      return result.rows;
-    } catch (error) {
-      throw new Error(`Erro ao listar artigos: ${error}`);
-    }
-  }
-
+  // Canonical list method for API responses, with author fields.
   public async findAllWithAuthors(): Promise<ArticleWithAuthor[]> {
     try {
       const result = await connection.query<ArticleWithAuthor>(
         `SELECT 
           a.*,
-          u.nome as autor_nome,
-          u.email as autor_email,
-          u.avatar as autor_avatar,
-          u.bio as autor_bio,
+          ${ArticleRepository.AUTHOR_SELECT_FIELDS},
           (SELECT COUNT(*) FROM comments WHERE id_article = a.id) as "commentsCount"
         FROM articles a
         INNER JOIN users u ON a.id_autor = u.id
@@ -137,10 +131,7 @@ export class ArticleRepository {
       const result = await connection.query<ArticleWithAuthor>(
         `SELECT 
           a.*,
-          u.nome as autor_nome,
-          u.email as autor_email,
-          u.avatar as autor_avatar,
-          u.bio as autor_bio,
+          ${ArticleRepository.AUTHOR_SELECT_FIELDS},
           (SELECT COUNT(*) FROM comments WHERE id_article = a.id) as "commentsCount"
         FROM articles a
         LEFT JOIN users u ON a.id_autor = u.id

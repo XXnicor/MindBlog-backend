@@ -243,7 +243,8 @@ export class ArticleController {
       }
 
       const updatedArticle = await this.articleService.updateArticle(id, userId, updateData);
-      const articleWithUrl = this.formatImageUrl(updatedArticle);
+      const articleWithAuthor = this.formatAuthor(updatedArticle);
+      const articleWithUrl = this.formatImageUrl(articleWithAuthor);
 
       res.status(200).json({
         data: articleWithUrl
