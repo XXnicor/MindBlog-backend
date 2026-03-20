@@ -3,7 +3,6 @@ import { ArticleService } from '../services/ArticleService';
 import { CreateArticleData, UpdateArticleData } from '../types';
 import { AuthRequest } from '../types/AuthRequest';
 import multer from 'multer';
-import { config } from '../config/env.config';
 
 export class ArticleController {
   private articleService: ArticleService;
@@ -14,10 +13,11 @@ export class ArticleController {
 
   private formatImageUrl(article: any): any {
     if (article.imagem_banner) {
-      const portEnv = process.env.PORT;
-      const portNum: number = portEnv ? Number(portEnv) : config.server.port;
-      const port = Number.isNaN(portNum) || portNum <= 0 ? config.server.port : portNum;
-      article.imagem_banner_url = `http://localhost:${port}/uploads/${article.imagem_banner}`;
+      const baseUrl = process.env.NODE_ENV === 'production'
+        ? `https://${process.env.RENDER_SERVICE_NAME}.onrender.com`
+        : `http://localhost:${process.env.PORT ?? 3001}`;
+
+      article.imagem_banner_url = `${baseUrl}/uploads/${article.imagem_banner}`;
     } else {
       article.imagem_banner_url = null;
     }
@@ -104,29 +104,23 @@ export class ArticleController {
       const id = parseInt(req.params.id);
 
       if (isNaN(id)) {
-        res.status(400).json({
-          message: 'ID inválido'
-        });
+        res.status(400).json({ message: 'ID inválido' });
         return;
       }
 
       const article = await this.articleService.getArticleById(id);
 
       if (!article) {
-        res.status(404).json({
-          message: 'Artigo não encontrado'
-        });
+        res.status(404).json({ message: 'Artigo não encontrado' });
         return;
       }
 
       const articleFormatted = this.formatImageUrl(this.formatAuthor(article));
 
-      res.status(200).json({
-        data: articleFormatted
-      });
+      res.status(200).json({ data: articleFormatted });
     } catch (error) {
       const err = error as Error;
-      console.error(`[ArticleController.getById] Erro:`, { message: err.message, stack: err.stack, id: req.params.id });
+      console.error(`[ArticleController.getById] Erro:`, err.message);
       res.status(500).json({
         error: 'internal_server_error',
         message: process.env.NODE_ENV === 'development' ? err.message : 'Erro ao buscar artigo'
