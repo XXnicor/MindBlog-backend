@@ -46,7 +46,7 @@ export class UserService {
         throw new Error('Usuário inválido');
       }
 
-      const token = this.generateToken(createdUser.id);
+      const token = this.generateToken(Number(createdUser.id));
 
       return {
         user: this.toDTO(createdUser),
@@ -61,7 +61,7 @@ export class UserService {
   }
   private generateToken(userId: number): string {
 
-    const payload = { userId };
+    const payload = { userId: Number(userId) };
 
 
     const token = sign(
@@ -94,7 +94,7 @@ export class UserService {
         throw new Error('Usuário inválido');
       }
 
-      const token = this.generateToken(user.id);
+      const token = this.generateToken(Number(user.id));
 
       return {
         user:this.toDTO(user),
